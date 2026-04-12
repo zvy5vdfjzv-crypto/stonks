@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus } from 'lucide-react'
+import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
 import NotificationPanel from '../notifications/NotificationPanel'
 import { useNotifications } from '../../context/NotificationContext'
@@ -10,7 +10,7 @@ import { useUser } from '../../context/UserContext'
 import { Link } from 'react-router-dom'
 import UserAvatar from '../ui/UserAvatar'
 
-export default function Header({ onCreateMeme }) {
+export default function Header({ onCreateMeme, onOpenMenu }) {
   const { lang, toggleLang } = useLang()
   const { balance } = useGame()
   const { user, creatorTitle } = useUser()
@@ -23,6 +23,13 @@ export default function Header({ onCreateMeme }) {
   <>
     <header className="sticky top-0 z-30 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5">
       <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {onOpenMenu && (
+            <button onClick={onOpenMenu}
+              className="text-text-muted hover:text-text-primary cursor-pointer p-1 -ml-1">
+              <Menu size={20} />
+            </button>
+          )}
         <Link to="/" className="flex items-center gap-2 no-underline">
           <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
             <TrendingUp className="text-accent" size={16} />
@@ -31,6 +38,7 @@ export default function Header({ onCreateMeme }) {
             STON<span className="text-accent">KS</span>
           </span>
         </Link>
+        </div>
 
         <div className="flex items-center gap-2">
           <motion.div

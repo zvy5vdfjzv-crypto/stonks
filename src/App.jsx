@@ -17,6 +17,7 @@ import NewsTicker from './components/news/NewsTicker'
 // Toast system removed - unified into NotificationContext
 import CreateMemeModal from './components/market/CreateMemeModal'
 import ChatSidePanel from './components/chat/ChatSidePanel'
+import SideMenu from './components/layout/SideMenu'
 import OnboardingPage from './pages/OnboardingPage'
 import MarketPage from './pages/MarketPage'
 import SocialPage from './pages/SocialPage'
@@ -31,6 +32,7 @@ import ShopPage from './pages/ShopPage'
 function MainApp() {
   const { lang } = useLang()
   const [createOpen, setCreateOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <GameProvider lang={lang}>
@@ -39,7 +41,7 @@ function MainApp() {
         <NotificationProvider>
         <BrowserRouter>
           <div className="flex flex-col min-h-dvh bg-[#0a0a0c]">
-            <Header onCreateMeme={() => setCreateOpen(true)} />
+            <Header onCreateMeme={() => setCreateOpen(true)} onOpenMenu={() => setMenuOpen(true)} />
             <NewsTicker />
             <main className="flex-1 pb-16">
               <Routes>
@@ -69,6 +71,7 @@ function MainApp() {
             </motion.button>
 
             <CreateMemeModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
+            <SideMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
             <ChatSidePanel />
             <PushNotifications />
             <NotificationBridge />
