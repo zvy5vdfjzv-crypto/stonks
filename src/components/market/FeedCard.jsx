@@ -108,17 +108,17 @@ export default function FeedCard({ trend, index, onOpenStats }) {
   return (
     <div
       ref={cardRef}
-      className="snap-start flex items-center justify-center px-3 py-2"
-      style={{ height: 'calc(100dvh - 170px)', minHeight: '500px' }}
+      className="snap-start flex items-center justify-center px-0 sm:px-3 py-0 sm:py-2"
+      style={{ height: 'calc(100dvh - 155px)', minHeight: '480px' }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className={`relative w-full max-w-lg bg-black rounded-3xl border overflow-hidden
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className={`relative w-full max-w-lg bg-black sm:rounded-3xl border overflow-hidden
           shadow-2xl h-full flex flex-col transition-colors duration-500
-          ${isBanking ? 'border-green/50 shadow-green/20' : 'border-white/5'}`}
+          ${isBanking ? 'border-green/50 shadow-green/20' : 'border-white/5 sm:border-white/5 border-transparent'}`}
       >
         {/* Media / background */}
         <div className="relative flex-1 min-h-0 overflow-hidden">
@@ -239,7 +239,7 @@ export default function FeedCard({ trend, index, onOpenStats }) {
         </div>
 
         {/* BANCAR action bar */}
-        <div className="bg-black/90 backdrop-blur-xl px-4 py-3 flex items-center gap-3 shrink-0 border-t border-white/5">
+        <div className="bg-black/90 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2 sm:gap-3 shrink-0 border-t border-white/5">
           <div className="flex-1 relative">
             <motion.button
               onPointerDown={startBanking}
@@ -247,7 +247,7 @@ export default function FeedCard({ trend, index, onOpenStats }) {
               onPointerLeave={stopBanking}
               disabled={maxAffordable <= 0}
               animate={isBanking ? { boxShadow: '0 0 30px rgba(0,214,143,0.4)' } : { boxShadow: '0 0 0px rgba(0,214,143,0)' }}
-              className={`w-full py-4 rounded-2xl font-bold text-sm cursor-pointer
+              className={`w-full py-3 sm:py-4 rounded-2xl font-bold text-sm cursor-pointer
                 transition-all select-none touch-none disabled:opacity-20 disabled:cursor-not-allowed
                 ${isBanking ? 'bg-green text-black scale-[0.97]' : 'bg-green text-black'}`}
             >
@@ -278,7 +278,7 @@ export default function FeedCard({ trend, index, onOpenStats }) {
             disabled={!holding}
             whileTap={holding ? { scale: 0.9 } : {}}
             className="bg-white/5 hover:bg-white/10 disabled:opacity-10 text-red text-xs font-bold
-              px-5 py-4 rounded-2xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5"
+              px-4 py-3 sm:px-5 sm:py-4 rounded-2xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5"
           >
             Vender
           </motion.button>

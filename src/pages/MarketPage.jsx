@@ -47,9 +47,9 @@ export default function MarketPage() {
   }, [trends, activeTab, user?.niches])
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100dvh - 130px)' }}>
+    <div className="flex flex-col" style={{ height: 'calc(100dvh - 115px)' }}>
       {/* Tabs */}
-      <div className="flex items-center justify-center gap-1 px-4 py-2 bg-[#0a0a0c] border-b border-border/50">
+      <div className="flex items-center justify-center gap-1 px-4 py-1.5 bg-[#0a0a0c]">
         {TABS.map(tab => (
           <button
             key={tab.id}

@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
   <>
-    <header className="sticky top-0 z-30 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-border/50 px-4 py-2.5">
+    <header className="sticky top-0 z-30 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5">
       <div className="max-w-5xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 no-underline">
           <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
