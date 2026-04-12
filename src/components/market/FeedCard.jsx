@@ -239,49 +239,51 @@ export default function FeedCard({ trend, index, onOpenStats }) {
         </div>
 
         {/* BANCAR action bar */}
-        <div className="bg-black/90 backdrop-blur-xl px-3 py-2.5 sm:px-4 sm:py-3 flex items-center gap-2 sm:gap-3 shrink-0 border-t border-white/5">
-          <div className="flex-1 relative">
-            <motion.button
-              onPointerDown={startBanking}
-              onPointerUp={stopBanking}
-              onPointerLeave={stopBanking}
-              disabled={maxAffordable <= 0}
-              animate={isBanking ? { boxShadow: '0 0 30px rgba(0,214,143,0.4)' } : { boxShadow: '0 0 0px rgba(0,214,143,0)' }}
-              className={`w-full py-3 sm:py-4 rounded-2xl font-bold text-sm cursor-pointer
-                transition-all select-none touch-none disabled:opacity-20 disabled:cursor-not-allowed
-                ${isBanking ? 'bg-green text-black scale-[0.97]' : 'bg-green text-black'}`}
-            >
-              {isBanking ? (
-                <span className="flex items-center justify-center gap-2">
-                  <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.5, ease: 'linear' }}>
-                    <Coins size={16} />
-                  </motion.span>
-                  BANCANDO {bankAmount}x · S${(bankAmount * pricePerUnit).toFixed(0)}
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2 text-base">
-                  🔥 BANCAR
-                </span>
+        <div className="bg-black/90 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 shrink-0 border-t border-white/5">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <motion.button
+                onPointerDown={startBanking}
+                onPointerUp={stopBanking}
+                onPointerLeave={stopBanking}
+                disabled={maxAffordable <= 0}
+                animate={isBanking ? { boxShadow: '0 0 30px rgba(0,214,143,0.4)' } : { boxShadow: '0 0 0px rgba(0,214,143,0)' }}
+                className={`w-full py-3 rounded-2xl font-bold text-sm cursor-pointer
+                  transition-all select-none touch-none disabled:opacity-20 disabled:cursor-not-allowed
+                  ${isBanking ? 'bg-green text-black scale-[0.97]' : 'bg-green text-black'}`}
+              >
+                {isBanking ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.5, ease: 'linear' }}>
+                      <Coins size={16} />
+                    </motion.span>
+                    BANCANDO {bankAmount}x · S${(bankAmount * pricePerUnit).toFixed(0)}
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2 text-base">
+                    🔥 BANCAR
+                  </span>
+                )}
+              </motion.button>
+              {isBanking && maxAffordable > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((bankAmount / maxAffordable) * 100, 100)}%` }}
+                  className="absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-2xl"
+                />
               )}
-            </motion.button>
-            {isBanking && maxAffordable > 0 && (
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min((bankAmount / maxAffordable) * 100, 100)}%` }}
-                className="absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-2xl"
-              />
-            )}
-          </div>
+            </div>
 
-          <motion.button
-            onClick={handleSell}
-            disabled={!holding}
-            whileTap={holding ? { scale: 0.9 } : {}}
-            className="bg-white/5 hover:bg-white/10 disabled:opacity-10 text-red text-xs font-bold
-              px-4 py-3 sm:px-5 sm:py-4 rounded-2xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5"
-          >
-            Vender
-          </motion.button>
+            <motion.button
+              onClick={handleSell}
+              disabled={!holding}
+              whileTap={holding ? { scale: 0.9 } : {}}
+              className="bg-white/5 hover:bg-white/10 disabled:opacity-10 text-red text-xs font-bold
+                px-4 py-3 rounded-2xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5 shrink-0"
+            >
+              Vender
+            </motion.button>
+          </div>
         </div>
 
         {/* BANCOU overlay + confetti */}

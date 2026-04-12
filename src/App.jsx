@@ -56,16 +56,16 @@ function MainApp() {
             </main>
             <BottomNav />
 
-            {/* Create meme FAB - positioned above BottomNav on mobile */}
+            {/* Create meme FAB */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setCreateOpen(true)}
-              className="fixed z-30 w-12 h-12 rounded-full bg-accent hover:bg-accent-light
+              className="fixed z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-accent hover:bg-accent-light
                 text-white shadow-lg shadow-accent/30 flex items-center justify-center cursor-pointer
-                transition-colors bottom-[72px] right-4 sm:bottom-6 sm:right-24 sm:w-14 sm:h-14"
+                transition-colors bottom-[68px] right-3 sm:bottom-6 sm:right-24"
             >
-              <Plus size={22} />
+              <Plus size={20} />
             </motion.button>
 
             <CreateMemeModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
