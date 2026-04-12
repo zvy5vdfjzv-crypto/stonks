@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, Info, MoreHorizontal } from 'lucide-react'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
+import { useChat } from '../../context/ChatContext'
 
 export default function FeedCard({ trend, onOpenStats }) {
   const { t } = useLang()
@@ -11,16 +12,14 @@ export default function FeedCard({ trend, onOpenStats }) {
   const [saved, setSaved] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [showBancou, setShowBancou] = useState(false)
-  const [bankQty, setBankQty] = useState(0)
+  const [sent, setSent] = useState(null)
+  const { friends, communities, sendMessage } = useChat()
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
 
-  // Simple instant buy - no hold delay
   const handleBancar = () => {
-    const qty = 1
-    if (qty * trend.price > balance) return
-    buy(trend.id, qty)
-    setBankQty(prev => prev + 1)
+    if (trend.price > balance) return
+    buy(trend.id, 1)
     setShowBancou(true)
     setTimeout(() => setShowBancou(false), 1200)
   }
@@ -30,15 +29,23 @@ export default function FeedCard({ trend, onOpenStats }) {
     sell(trend.id, 1)
   }
 
-  const handleShare = () => {
-    const text = `${trend.emoji} ${trend.name} (${trend.ticker}) - S$${trend.price.toFixed(2)} ${isPositive ? '📈' : '📉'}${trend.change24h.toFixed(2)}% no STONKS!`
-    if (navigator.share) {
-      navigator.share({ title: trend.name, text, url: window.location.origin })
-    } else {
-      navigator.clipboard?.writeText(text + ' ' + window.location.origin)
-      setShowShare(true)
-      setTimeout(() => setShowShare(false), 1500)
-    }
+  const shareText = `${trend.emoji} ${trend.name} (${trend.ticker}) S$${trend.price.toFixed(2)} ${isPositive ? '📈' : '📉'}${trend.change24h.toFixed(2)}%`
+
+  const handleSendToChat = (chatId, chatName) => {
+    sendMessage(chatId, `${shareText} - Olha isso no STONKS! 🔥`)
+    setSent(chatName)
+    setTimeout(() => setSent(null), 1500)
+  }
+
+  const handleCopyLink = () => {
+    navigator.clipboard?.writeText(`${shareText} ${window.location.origin}`)
+    setSent('Link copiado!')
+    setTimeout(() => { setSent(null); setShowShare(false) }, 1200)
+  }
+
+  const handleNativeShare = () => {
+    navigator.share?.({ title: trend.name, text: shareText, url: window.location.origin })
+    setShowShare(false)
   }
 
   const topBancadores = trend.socialProof?.topBancadores || []
@@ -66,7 +73,7 @@ export default function FeedCard({ trend, onOpenStats }) {
       </div>
 
       {/* Image - tap to like */}
-      <div className="relative w-full aspect-square bg-surface-hover overflow-hidden"
+      <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[480px] bg-surface-hover overflow-hidden"
         onDoubleClick={() => { setLiked(true); handleBancar() }}>
         <img
           src={trend.thumbnail}
@@ -141,16 +148,8 @@ export default function FeedCard({ trend, onOpenStats }) {
             </button>
 
             {/* Share */}
-            <button onClick={handleShare} className="text-text-secondary hover:text-text-primary cursor-pointer relative">
+            <button onClick={() => setShowShare(!showShare)} className="text-text-secondary hover:text-text-primary cursor-pointer">
               <Share2 size={20} />
-              <AnimatePresence>
-                {showShare && (
-                  <motion.span initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: -20 }} exit={{ opacity: 0 }}
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] text-green font-semibold whitespace-nowrap">
-                    Copiado!
-                  </motion.span>
-                )}
-              </AnimatePresence>
             </button>
           </div>
 
@@ -159,6 +158,57 @@ export default function FeedCard({ trend, onOpenStats }) {
             <Bookmark size={22} fill={saved ? 'currentColor' : 'none'} className={saved ? 'text-text-primary' : ''} />
           </button>
         </div>
+
+        {/* Share/Forward panel */}
+        <AnimatePresence>
+          {showShare && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mt-2"
+            >
+              {sent && (
+                <p className="text-green text-[11px] font-semibold text-center py-1">✓ {sent}</p>
+              )}
+              {/* Recent contacts - horizontal scroll */}
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                {friends.slice(0, 6).map(f => (
+                  <button key={f.id} onClick={() => handleSendToChat(f.id, f.name)}
+                    className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group">
+                    <div className="w-11 h-11 rounded-full bg-surface-hover flex items-center justify-center text-lg
+                      group-hover:bg-accent/20 transition-colors border border-border">
+                      {f.avatar}
+                    </div>
+                    <span className="text-text-muted text-[9px] w-12 text-center truncate group-hover:text-accent">{f.name.split(/(?=[A-Z_])/)[0]}</span>
+                  </button>
+                ))}
+                {/* Communities */}
+                {communities.slice(0, 3).map(c => (
+                  <button key={c.id} onClick={() => handleSendToChat(c.id, c.name)}
+                    className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group">
+                    <div className="w-11 h-11 rounded-lg bg-surface-hover flex items-center justify-center text-lg
+                      group-hover:bg-accent/20 transition-colors border border-border">
+                      {c.emoji}
+                    </div>
+                    <span className="text-text-muted text-[9px] w-12 text-center truncate group-hover:text-accent">{c.name.split(' ')[0]}</span>
+                  </button>
+                ))}
+              </div>
+              {/* Actions row */}
+              <div className="flex gap-2 mt-1">
+                <button onClick={handleCopyLink}
+                  className="flex-1 bg-surface-hover border border-border rounded-lg py-1.5 text-[10px] text-text-secondary font-medium cursor-pointer hover:text-text-primary transition-colors">
+                  📋 Copiar link
+                </button>
+                <button onClick={handleNativeShare}
+                  className="flex-1 bg-surface-hover border border-border rounded-lg py-1.5 text-[10px] text-text-secondary font-medium cursor-pointer hover:text-text-primary transition-colors">
+                  📤 Mais opcoes
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Social proof */}
         <div className="mt-1.5">

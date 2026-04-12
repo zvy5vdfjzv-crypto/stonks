@@ -7,7 +7,7 @@ export default function PushNotifications() {
   const { pushQueue, dismissPush, NOTIFICATION_TYPES } = useNotifications()
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-80 sm:w-96 pointer-events-none">
+    <div className="fixed top-12 right-2 sm:top-4 sm:right-4 z-50 flex flex-col gap-2 w-72 sm:w-96 pointer-events-none">
       <AnimatePresence>
         {pushQueue.slice(0, 3).map(notif => (
           <PushItem key={notif.id} notif={notif} onDismiss={dismissPush} types={NOTIFICATION_TYPES} />
