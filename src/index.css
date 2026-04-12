@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #6C5CE7;
+  --color-accent-light: #A29BFE;
+  --color-green: #00D68F;
+  --color-green-light: #00D68F33;
+  --color-red: #FF6B6B;
+  --color-red-light: #FF6B6B33;
+  --color-yellow: #FECA57;
+  --color-blue: #54A0FF;
+  --color-pink: #FF6B9D;
+  --color-surface: #151518;
+  --color-surface-light: #1C1C21;
+  --color-surface-hover: #22222A;
+  --color-border: #2A2A35;
+  --color-border-light: #35354A;
+  --color-text-primary: #F0F0F5;
+  --color-text-secondary: #8888A0;
+  --color-text-muted: #55556A;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* STONKS signature glow */
+.stonks-glow {
+  text-shadow: 0 0 20px rgba(108, 92, 231, 0.5), 0 0 40px rgba(108, 92, 231, 0.2);
+}
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 214, 143, 0.3), 0 0 60px rgba(0, 214, 143, 0.1);
+}
+.glow-accent {
+  box-shadow: 0 0 20px rgba(108, 92, 231, 0.3), 0 0 60px rgba(108, 92, 231, 0.1);
+}
+
+/* Smooth page transitions */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeSlideIn 0.3s ease-out; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #0a0a0c;
+  color: #F0F0F5;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A2A35;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #35354A;
+}
+
+::selection {
+  background: #6C5CE740;
+  color: #fff;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
