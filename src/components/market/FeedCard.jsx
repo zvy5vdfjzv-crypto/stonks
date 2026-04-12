@@ -1,384 +1,192 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, Info, Coins, Users, Share2 } from 'lucide-react'
-import SparkLine from './SparkLine'
-import Badge from '../ui/Badge'
+import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, Info, MoreHorizontal } from 'lucide-react'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 
-const categoryGradients = {
-  memes: 'from-purple-900/80 via-indigo-900/60 to-black',
-  finance: 'from-emerald-900/80 via-teal-900/60 to-black',
-  music: 'from-blue-900/80 via-cyan-900/60 to-black',
-  tech: 'from-violet-900/80 via-purple-900/60 to-black',
-  ai: 'from-pink-900/80 via-rose-900/60 to-black',
-  influencer: 'from-amber-900/80 via-orange-900/60 to-black',
-  viral: 'from-rose-900/80 via-pink-900/60 to-black',
-  cars: 'from-red-900/80 via-orange-900/60 to-black',
-  sports: 'from-green-900/80 via-emerald-900/60 to-black',
-  gaming: 'from-indigo-900/80 via-blue-900/60 to-black',
-}
-
-const categoryColors = {
-  memes: 'accent', finance: 'green', music: 'blue', tech: 'accent',
-  ai: 'pink', influencer: 'yellow', viral: 'pink', cars: 'red', sports: 'green', gaming: 'blue',
-}
-
-// Confetti particles
-function Confetti() {
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 0.3,
-    color: ['#6C5CE7', '#00D68F', '#FECA57', '#FF6B6B', '#54A0FF', '#FF6B9D'][Math.floor(Math.random() * 6)],
-  }))
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          initial={{ y: '50%', x: `${p.x}%`, opacity: 1, scale: 1 }}
-          animate={{ y: '-20%', opacity: 0, scale: 0, rotate: Math.random() * 360 }}
-          transition={{ duration: 1.2, delay: p.delay, ease: 'easeOut' }}
-          className="absolute w-2 h-2 rounded-full"
-          style={{ backgroundColor: p.color }}
-        />
-      ))}
-    </div>
-  )
-}
-
-export default function FeedCard({ trend, index, onOpenStats }) {
+export default function FeedCard({ trend, onOpenStats }) {
   const { t } = useLang()
   const { balance, holdings, buy, sell } = useGame()
-  const [isBanking, setIsBanking] = useState(false)
-  const [bankAmount, setBankAmount] = useState(0)
-  const [showBankResult, setShowBankResult] = useState(false)
-  const [imgError, setImgError] = useState(false)
-  const [liveBancadas, setLiveBancadas] = useState(Math.floor(Math.random() * 50) + 5)
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [showShare, setShowShare] = useState(false)
-  const cardRef = useRef(null)
-  const intervalRef = useRef(null)
+  const [showBancou, setShowBancou] = useState(false)
+  const [bankQty, setBankQty] = useState(0)
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
-  const pricePerUnit = trend.price
-  const maxAffordable = Math.floor(balance / pricePerUnit)
 
-  // Simulate live bancadas counter
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setLiveBancadas(prev => prev + (Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 1 : 0))
-    }, 4000)
-    return () => clearInterval(iv)
-  }, [])
+  // Simple instant buy - no hold delay
+  const handleBancar = () => {
+    const qty = 1
+    if (qty * trend.price > balance) return
+    buy(trend.id, qty)
+    setBankQty(prev => prev + 1)
+    setShowBancou(true)
+    setTimeout(() => setShowBancou(false), 1200)
+  }
 
-  const bankAmountRef = useRef(0)
-
-  const startBanking = useCallback(() => {
-    if (maxAffordable <= 0) return
-    setIsBanking(true)
-    setBankAmount(0)
-    bankAmountRef.current = 0
-    let lastTime = performance.now()
-    const step = (now) => {
-      if (now - lastTime >= 80) {
-        lastTime = now
-        bankAmountRef.current = Math.min(bankAmountRef.current + 1, maxAffordable)
-        setBankAmount(bankAmountRef.current)
-        if (bankAmountRef.current >= maxAffordable) return
-      }
-      intervalRef.current = requestAnimationFrame(step)
-    }
-    intervalRef.current = requestAnimationFrame(step)
-  }, [maxAffordable])
-
-  const stopBanking = useCallback(() => {
-    cancelAnimationFrame(intervalRef.current)
-    setIsBanking(false)
-    const final = bankAmountRef.current
-    if (final > 0) {
-      buy(trend.id, final)
-      setShowBankResult(true)
-      setTimeout(() => setShowBankResult(false), 2000)
-    }
-    setBankAmount(0)
-    bankAmountRef.current = 0
-  }, [buy, trend.id])
-
-  useEffect(() => () => cancelAnimationFrame(intervalRef.current), [])
-
-  const handleSell = (e) => {
-    e.stopPropagation()
+  const handleSell = () => {
     if (!holding || holding.quantity < 1) return
     sell(trend.id, 1)
   }
 
-  const gradientBg = categoryGradients[trend.category] || categoryGradients.memes
-  const hasThumbnail = trend.thumbnail && !imgError
+  const handleShare = () => {
+    const text = `${trend.emoji} ${trend.name} (${trend.ticker}) - S$${trend.price.toFixed(2)} ${isPositive ? '📈' : '📉'}${trend.change24h.toFixed(2)}% no STONKS!`
+    if (navigator.share) {
+      navigator.share({ title: trend.name, text, url: window.location.origin })
+    } else {
+      navigator.clipboard?.writeText(text + ' ' + window.location.origin)
+      setShowShare(true)
+      setTimeout(() => setShowShare(false), 1500)
+    }
+  }
+
+  const topBancadores = trend.socialProof?.topBancadores || []
+  const bancadas = trend.socialProof?.bancadas || 0
 
   return (
-    <div
-      ref={cardRef}
-      className="snap-start flex items-center justify-center px-0 sm:px-3 py-0 sm:py-2"
-      style={{ height: 'calc(100dvh - 155px)', minHeight: '480px' }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className={`relative w-full max-w-lg bg-black sm:rounded-3xl border overflow-hidden
-          shadow-2xl h-full flex flex-col transition-colors duration-500
-          ${isBanking ? 'border-green/50 shadow-green/20' : 'border-white/5 sm:border-white/5 border-transparent'}`}
-      >
-        {/* Media / background */}
-        <div className="relative flex-1 min-h-0 overflow-hidden">
-          {hasThumbnail ? (
-            <img
-              src={trend.thumbnail}
-              alt={trend.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className={`w-full h-full bg-gradient-to-b ${gradientBg} flex items-center justify-center`}>
-              <span className="text-8xl opacity-30">{trend.emoji}</span>
-            </div>
-          )}
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
-
-          {/* Top bar */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-10">
-            <Badge color={categoryColors[trend.category] || 'neutral'}>
-              {t(`categories.${trend.category}`)}
-            </Badge>
-            <div className="flex items-center gap-2">
-              {/* Live bancadas counter */}
-              <motion.div
-                key={liveBancadas}
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
-                className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1"
-              >
-                <Users size={10} className="text-green" />
-                <span className="text-[10px] text-green font-semibold">{liveBancadas} bancando</span>
-              </motion.div>
-              <button
-                onClick={() => onOpenStats?.(trend)}
-                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md
-                  flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors"
-              >
-                <Info size={14} className="text-white/70" />
-              </button>
+    <article className="border-b border-border/40">
+      {/* Header - user/source info */}
+      <div className="flex items-center justify-between px-3 py-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink flex items-center justify-center text-sm">
+            {trend.emoji}
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-text-primary text-xs font-semibold">{trend.ticker}</span>
+              <span className="text-text-muted text-[10px]">· {trend.category}</span>
             </div>
           </div>
+        </div>
+        <button onClick={() => onOpenStats?.(trend)}
+          className="text-text-muted hover:text-text-primary cursor-pointer p-1">
+          <MoreHorizontal size={18} />
+        </button>
+      </div>
 
-          {/* Bottom content */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-            {/* Name + ticker */}
-            <div className="flex items-end justify-between gap-3 mb-3">
-              <div>
-                <h2 className="font-bold text-white text-xl leading-tight drop-shadow-lg">
-                  {trend.emoji} {trend.name}
-                </h2>
-                <p className="text-white/40 text-sm mt-0.5">{trend.ticker}</p>
-              </div>
-
-              {/* Price */}
-              <div className="text-right">
-                <motion.p
-                  key={trend.price}
-                  initial={{ scale: 1.08, color: isPositive ? '#00D68F' : '#FF6B6B' }}
-                  animate={{ scale: 1, color: '#ffffff' }}
-                  transition={{ duration: 0.6 }}
-                  className="font-bold text-white text-3xl drop-shadow-lg"
-                >
-                  {trend.price.toFixed(2)}
-                </motion.p>
-                <motion.div
-                  className={`flex items-center gap-1 justify-end text-sm font-bold ${isPositive ? 'text-green' : 'text-red'}`}
-                >
-                  {isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  <span>{isPositive ? '+' : ''}{trend.change24h.toFixed(2)}%</span>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Social proof */}
-            {trend.socialProof && (
-              <div className="flex items-center gap-2 mb-2">
-                {/* Stacked avatars */}
-                <div className="flex -space-x-1.5">
-                  {(trend.socialProof.topBancadores || []).slice(0, 3).map((name, i) => (
-                    <div key={i} className="w-5 h-5 rounded-full bg-accent/30 border border-black/50
-                      flex items-center justify-center text-[8px] font-bold text-white"
-                      title={name}>
-                      {name[0]}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-white/60 text-[11px]">
-                  <span className="text-white/80 font-medium">{trend.socialProof.topBancadores?.[0]}</span>
-                  {trend.socialProof.topBancadores?.length > 1 && (
-                    <> e <span className="text-white/80 font-medium">{trend.socialProof.topBancadores[1]}</span></>
-                  )}
-                  {trend.socialProof.bancadas > 0 && (
-                    <> e +{trend.socialProof.bancadas.toLocaleString()} bancaram</>
-                  )}
-                </p>
-              </div>
-            )}
-
-            {/* Sparkline */}
-            <div className="h-8 opacity-40 mb-2">
-              <SparkLine data={trend.priceHistory.slice(-24)} positive={isPositive} />
-            </div>
-
-            {/* Holdings badge */}
-            {holding && (
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="inline-flex items-center gap-1.5 bg-accent/20 backdrop-blur-sm text-accent
-                  text-xs font-semibold px-3 py-1 rounded-full border border-accent/30">
-                <Coins size={11} />
-                {holding.quantity} cotas · {((trend.price - holding.avgPrice) / holding.avgPrice * 100).toFixed(1)}%
-              </motion.div>
-            )}
+      {/* Image - tap to like */}
+      <div className="relative w-full aspect-square bg-surface-hover overflow-hidden"
+        onDoubleClick={() => { setLiked(true); handleBancar() }}>
+        <img
+          src={trend.thumbnail}
+          alt={trend.name}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => { e.target.style.display = 'none' }}
+        />
+        {/* Price overlay - bottom right */}
+        <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
+          <p className={`font-bold text-sm ${isPositive ? 'text-green' : 'text-red'}`}>
+            S$ {trend.price.toFixed(2)}
+          </p>
+          <div className={`flex items-center gap-0.5 text-[10px] font-semibold ${isPositive ? 'text-green' : 'text-red'}`}>
+            {isPositive ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+            {isPositive ? '+' : ''}{trend.change24h.toFixed(2)}%
           </div>
         </div>
 
-        {/* Action bar */}
-        <div className="bg-black/90 backdrop-blur-xl px-3 py-2 shrink-0 border-t border-white/5 space-y-1.5">
-          {/* BANCAR + Vender side by side */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <motion.button
-                onPointerDown={startBanking}
-                onPointerUp={stopBanking}
-                onPointerLeave={stopBanking}
-                disabled={maxAffordable <= 0}
-                className={`w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer
-                  transition-all select-none touch-none disabled:opacity-20 disabled:cursor-not-allowed
-                  ${isBanking ? 'bg-green text-black scale-[0.98]' : 'bg-green text-black'}`}
-              >
-                {isBanking ? (
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Coins size={14} />
-                    {bankAmount}x · S${(bankAmount * pricePerUnit).toFixed(0)}
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-1.5">
-                    🔥 BANCAR
-                  </span>
-                )}
-              </motion.button>
-              {isBanking && maxAffordable > 0 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((bankAmount / maxAffordable) * 100, 100)}%` }}
-                  className="absolute bottom-0 left-0 h-0.5 bg-white/40 rounded-b-xl"
-                />
-              )}
-            </div>
-
-            <motion.button
-              onClick={handleSell}
-              disabled={!holding}
-              whileTap={holding ? { scale: 0.9 } : {}}
-              className="flex-1 bg-white/5 hover:bg-white/10 disabled:opacity-15 text-red text-xs sm:text-sm font-bold
-                py-2.5 rounded-xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5"
-            >
-              Vender
-            </motion.button>
-
-            <button
-              onClick={() => setShowShare(!showShare)}
-              className="w-10 h-10 shrink-0 rounded-xl bg-white/5 border border-white/5
-                flex items-center justify-center text-white/50 hover:text-white cursor-pointer transition-colors"
-            >
-              <Share2 size={16} />
-            </button>
-          </div>
-
-          {/* Share menu */}
-          <AnimatePresence>
-            {showShare && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="flex gap-2 py-1">
-                  <button
-                    onClick={() => {
-                      const url = `${window.location.origin}?t=${trend.id}`
-                      navigator.clipboard?.writeText(`${trend.emoji} ${trend.name} (${trend.ticker}) - S$${trend.price.toFixed(2)} ${trend.change24h >= 0 ? '📈' : '📉'}${trend.change24h.toFixed(2)}% no STONKS! ${url}`)
-                      setShowShare(false)
-                    }}
-                    className="flex-1 bg-surface-hover border border-border rounded-lg py-2 text-[10px] text-text-secondary
-                      font-medium cursor-pointer hover:text-text-primary transition-colors"
-                  >
-                    📋 Copiar link
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({ title: `${trend.name} no STONKS`, text: `${trend.emoji} ${trend.ticker} S$${trend.price.toFixed(2)}`, url: window.location.origin })
-                      }
-                      setShowShare(false)
-                    }}
-                    className="flex-1 bg-surface-hover border border-border rounded-lg py-2 text-[10px] text-text-secondary
-                      font-medium cursor-pointer hover:text-text-primary transition-colors"
-                  >
-                    📤 Compartilhar
-                  </button>
-                  <button
-                    onClick={() => setShowShare(false)}
-                    className="flex-1 bg-accent/10 border border-accent/20 rounded-lg py-2 text-[10px] text-accent
-                      font-medium cursor-pointer hover:bg-accent/20 transition-colors"
-                  >
-                    💬 Enviar no Chat
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Category badge - top left */}
+        <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+          <span className="text-white text-[10px] font-semibold">{t(`categories.${trend.category}`)}</span>
         </div>
 
-        {/* BANCOU overlay + confetti */}
+        {/* Double-tap heart animation */}
         <AnimatePresence>
-          {showBankResult && (
+          {showBancou && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-20"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
-              <Confetti />
-              <motion.div
-                initial={{ scale: 0.5, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className="text-center z-30"
-              >
-                <motion.div
-                  animate={{ scale: [1, 1.4, 1], rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 0.6 }}
-                  className="text-7xl mb-4"
-                >
-                  🚀
-                </motion.div>
-                <p className="text-green font-bold text-2xl">BANCOU!</p>
-                <p className="text-white/50 text-sm mt-1">
-                  +{bankAmount || 1} cotas de {trend.ticker}
-                </p>
-              </motion.div>
+              <span className="text-6xl drop-shadow-lg">🚀</span>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </div>
+      </div>
+
+      {/* Action buttons - Instagram style */}
+      <div className="px-3 pt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* BANCAR (replaces like) */}
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={handleBancar}
+              disabled={trend.price > balance}
+              className="cursor-pointer disabled:opacity-30"
+            >
+              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all
+                ${holding ? 'bg-green/20 text-green' : 'bg-surface-hover text-text-primary hover:bg-green/10'}`}>
+                🔥 Bancar
+              </div>
+            </motion.button>
+
+            {/* Sell */}
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={handleSell}
+              disabled={!holding}
+              className="cursor-pointer disabled:opacity-20"
+            >
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-hover text-[11px] font-bold text-text-secondary hover:text-red transition-all">
+                📉 Vender
+              </div>
+            </motion.button>
+
+            {/* Comment / Stats */}
+            <button onClick={() => onOpenStats?.(trend)} className="text-text-secondary hover:text-text-primary cursor-pointer">
+              <MessageCircle size={22} />
+            </button>
+
+            {/* Share */}
+            <button onClick={handleShare} className="text-text-secondary hover:text-text-primary cursor-pointer relative">
+              <Share2 size={20} />
+              <AnimatePresence>
+                {showShare && (
+                  <motion.span initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: -20 }} exit={{ opacity: 0 }}
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] text-green font-semibold whitespace-nowrap">
+                    Copiado!
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
+
+          {/* Save */}
+          <button onClick={() => setSaved(!saved)} className="text-text-secondary hover:text-text-primary cursor-pointer">
+            <Bookmark size={22} fill={saved ? 'currentColor' : 'none'} className={saved ? 'text-text-primary' : ''} />
+          </button>
+        </div>
+
+        {/* Social proof */}
+        <div className="mt-1.5">
+          {topBancadores.length > 0 && (
+            <p className="text-text-primary text-xs">
+              <span className="font-semibold">Bancado por {topBancadores[0]}</span>
+              {bancadas > 1 && <span className="text-text-secondary"> e <span className="font-semibold">outras {bancadas.toLocaleString()} pessoas</span></span>}
+            </p>
+          )}
+          {holding && (
+            <p className="text-green text-[11px] font-medium mt-0.5">
+              Voce tem {holding.quantity} cotas · {((trend.price - holding.avgPrice) / holding.avgPrice * 100).toFixed(1)}%
+            </p>
+          )}
+        </div>
+
+        {/* Name + description */}
+        <div className="mt-1">
+          <p className="text-text-primary text-xs">
+            <span className="font-semibold">{trend.name}</span>{' '}
+            <span className="text-text-secondary">{trend.description}</span>
+          </p>
+        </div>
+
+        <p className="text-text-muted text-[10px] mt-1 mb-2">
+          Vol {(trend.volume / 1000).toFixed(0)}K · Cap S${(trend.marketCap / 1000000).toFixed(1)}M
+        </p>
+      </div>
+    </article>
   )
 }
