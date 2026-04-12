@@ -40,6 +40,31 @@ export const SHOP_ITEMS = [
   { id: 'frame-fire', name: 'Moldura Fire', category: 'frame', price: 1000, emoji: '🔥', svgOverlay: '<rect x="2" y="2" width="96" height="96" rx="18" fill="none" stroke="#FF6B6B" stroke-width="3"/><rect x="4" y="4" width="92" height="92" rx="16" fill="none" stroke="#FECA57" stroke-width="1" opacity="0.5"/>', rarity: 'epic' },
 ]
 
+export const VERIFICATION_TYPES = {
+  blue: { label: 'Verificado', emoji: '✓', color: '#54A0FF', bg: 'bg-blue', desc: 'Conta pessoal verificada' },
+  yellow: { label: 'Empresa', emoji: '✓', color: '#FECA57', bg: 'bg-yellow', desc: 'Conta empresarial verificada' },
+  black: { label: 'Politico', emoji: '✓', color: '#1a1a1a', bg: 'bg-black border border-white/30', desc: 'Figura publica/politica' },
+  stonks: { label: 'STONKS', emoji: '★', color: '#6C5CE7', bg: 'bg-accent', desc: 'Conta oficial STONKS' },
+}
+
+export const VERIFICATION_PLANS = [
+  { id: 'basic', name: 'Basico', priceMonthly: 10, priceSemiannual: 50, priceAnnual: 90, features: ['Selo verificado', 'Prioridade no feed'] },
+  { id: 'pro', name: 'Pro', priceMonthly: 20, priceSemiannual: 100, priceAnnual: 180, features: ['Selo verificado', 'Prioridade no feed', 'Insights avancados', 'Boost gratis/mes'] },
+  { id: 'premium', name: 'Premium', priceMonthly: 30, priceSemiannual: 150, priceAnnual: 270, features: ['Selo verificado', 'Prioridade maxima', 'Insights avancados', '3 Boosts gratis/mes', 'Suporte prioritario'] },
+  { id: 'elite', name: 'Elite', priceMonthly: 50, priceSemiannual: 250, priceAnnual: 450, features: ['Selo verificado', 'Prioridade maxima', 'Insights ilimitados', 'Boosts ilimitados', 'Suporte VIP', 'Badge exclusivo'] },
+]
+
+export const STONKS_OFFICIAL_ACCOUNTS = [
+  { id: 'stonks-main', handle: '@stonks', name: 'STONKS', emoji: '📈', verified: 'stonks', category: 'viral', followers: '1.2M', desc: 'Conta oficial da plataforma' },
+  { id: 'stonks-car', handle: '@stonkscar', name: 'STONKS Car', emoji: '🏎️', verified: 'stonks', category: 'cars', followers: '340K', desc: 'Tudo sobre carros, tuning e car meets' },
+  { id: 'stonks-art', handle: '@stonksart', name: 'STONKS Art', emoji: '🎨', verified: 'stonks', category: 'ai', followers: '280K', desc: 'Arte, design e AI art' },
+  { id: 'stonks-game', handle: '@stonksgame', name: 'STONKS Gaming', emoji: '🎮', verified: 'stonks', category: 'gaming', followers: '560K', desc: 'Games, streams e e-sports' },
+  { id: 'stonks-money', handle: '@stonksmoney', name: 'STONKS Money', emoji: '💰', verified: 'stonks', category: 'finance', followers: '890K', desc: 'Mercado financeiro e crypto' },
+  { id: 'stonks-music', handle: '@stonksmusic', name: 'STONKS Music', emoji: '🎵', verified: 'stonks', category: 'music', followers: '420K', desc: 'Musica, trends sonoras e virais' },
+  { id: 'stonks-tech', handle: '@stonkstech', name: 'STONKS Tech', emoji: '💻', verified: 'stonks', category: 'tech', followers: '310K', desc: 'Tecnologia, AI e inovacao' },
+  { id: 'stonks-sport', handle: '@stonkssport', name: 'STONKS Sport', emoji: '⚽', verified: 'stonks', category: 'sports', followers: '670K', desc: 'Esportes, edits e compilados' },
+]
+
 export const BOOST_TIERS = [
   { id: 'boost-small', name: 'Mini Boost', price: 100, multiplier: 2, duration: '1h', emoji: '⚡' },
   { id: 'boost-medium', name: 'Super Boost', price: 500, multiplier: 5, duration: '6h', emoji: '🚀' },
@@ -81,6 +106,11 @@ export function UserProvider({ children }) {
       totalViews: 0,
       bio: '',
       socialLinks: { instagram: '', x: '', youtube: '', linkedin: '' },
+      verified: null, // null | 'blue' | 'yellow' | 'black' | 'stonks'
+      verifiedPlan: null, // null | { tier, billing, expiresAt }
+      accountType: 'personal', // personal | business | political | owner
+      privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
+      screenTime: { totalMinutes: 0, sessions: [] },
       ownedItems: [],
       equippedItems: { hat: null, glasses: null, effect: null, frame: null },
     })
@@ -132,6 +162,18 @@ export function UserProvider({ children }) {
     })
   }, [])
 
+  const setVerified = useCallback((type, plan) => {
+    setUser(prev => prev ? { ...prev, verified: type, verifiedPlan: plan } : prev)
+  }, [setUser])
+
+  const updatePrivacy = useCallback((key, value) => {
+    setUser(prev => prev ? { ...prev, privacy: { ...prev.privacy, [key]: value } } : prev)
+  }, [setUser])
+
+  const addScreenTime = useCallback((minutes) => {
+    setUser(prev => prev ? { ...prev, screenTime: { ...prev.screenTime, totalMinutes: prev.screenTime.totalMinutes + minutes } } : prev)
+  }, [setUser])
+
   const isRegistered = !!user
   const creatorTitle = user ? getCreatorTitle(user.creatorScore) : CREATOR_TITLES[0]
 
@@ -147,6 +189,9 @@ export function UserProvider({ children }) {
       incrementStat,
       buyItem,
       equipItem,
+      setVerified,
+      updatePrivacy,
+      addScreenTime,
       CREATOR_TITLES,
     }}>
       {children}
