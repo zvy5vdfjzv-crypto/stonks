@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, Info, Coins, Users } from 'lucide-react'
+import { TrendingUp, TrendingDown, Info, Coins, Users, Share2 } from 'lucide-react'
 import SparkLine from './SparkLine'
 import Badge from '../ui/Badge'
 import { useLang } from '../../context/LanguageContext'
@@ -56,6 +56,7 @@ export default function FeedCard({ trend, index, onOpenStats }) {
   const [showBankResult, setShowBankResult] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [liveBancadas, setLiveBancadas] = useState(Math.floor(Math.random() * 50) + 5)
+  const [showShare, setShowShare] = useState(false)
   const cardRef = useRef(null)
   const intervalRef = useRef(null)
   const isPositive = trend.change24h >= 0
@@ -71,30 +72,40 @@ export default function FeedCard({ trend, index, onOpenStats }) {
     return () => clearInterval(iv)
   }, [])
 
+  const bankAmountRef = useRef(0)
+
   const startBanking = useCallback(() => {
     if (maxAffordable <= 0) return
     setIsBanking(true)
     setBankAmount(0)
-    let acc = 0
-    intervalRef.current = setInterval(() => {
-      acc += 1
-      if (acc > maxAffordable) { acc = maxAffordable; clearInterval(intervalRef.current) }
-      setBankAmount(acc)
-    }, 100)
+    bankAmountRef.current = 0
+    let lastTime = performance.now()
+    const step = (now) => {
+      if (now - lastTime >= 80) {
+        lastTime = now
+        bankAmountRef.current = Math.min(bankAmountRef.current + 1, maxAffordable)
+        setBankAmount(bankAmountRef.current)
+        if (bankAmountRef.current >= maxAffordable) return
+      }
+      intervalRef.current = requestAnimationFrame(step)
+    }
+    intervalRef.current = requestAnimationFrame(step)
   }, [maxAffordable])
 
   const stopBanking = useCallback(() => {
-    clearInterval(intervalRef.current)
+    cancelAnimationFrame(intervalRef.current)
     setIsBanking(false)
-    if (bankAmount > 0) {
-      buy(trend.id, bankAmount)
+    const final = bankAmountRef.current
+    if (final > 0) {
+      buy(trend.id, final)
       setShowBankResult(true)
-      setTimeout(() => setShowBankResult(false), 2500)
+      setTimeout(() => setShowBankResult(false), 2000)
     }
     setBankAmount(0)
-  }, [bankAmount, buy, trend.id])
+    bankAmountRef.current = 0
+  }, [buy, trend.id])
 
-  useEffect(() => () => clearInterval(intervalRef.current), [])
+  useEffect(() => () => cancelAnimationFrame(intervalRef.current), [])
 
   const handleSell = (e) => {
     e.stopPropagation()
@@ -238,8 +249,9 @@ export default function FeedCard({ trend, index, onOpenStats }) {
           </div>
         </div>
 
-        {/* BANCAR action bar */}
-        <div className="bg-black/90 backdrop-blur-xl px-3 py-2 sm:px-4 sm:py-3 shrink-0 border-t border-white/5">
+        {/* Action bar */}
+        <div className="bg-black/90 backdrop-blur-xl px-3 py-2 shrink-0 border-t border-white/5 space-y-1.5">
+          {/* BANCAR + Vender side by side */}
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
               <motion.button
@@ -247,20 +259,17 @@ export default function FeedCard({ trend, index, onOpenStats }) {
                 onPointerUp={stopBanking}
                 onPointerLeave={stopBanking}
                 disabled={maxAffordable <= 0}
-                animate={isBanking ? { boxShadow: '0 0 30px rgba(0,214,143,0.4)' } : { boxShadow: '0 0 0px rgba(0,214,143,0)' }}
-                className={`w-full py-3 rounded-2xl font-bold text-sm cursor-pointer
+                className={`w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer
                   transition-all select-none touch-none disabled:opacity-20 disabled:cursor-not-allowed
-                  ${isBanking ? 'bg-green text-black scale-[0.97]' : 'bg-green text-black'}`}
+                  ${isBanking ? 'bg-green text-black scale-[0.98]' : 'bg-green text-black'}`}
               >
                 {isBanking ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.5, ease: 'linear' }}>
-                      <Coins size={16} />
-                    </motion.span>
-                    BANCANDO {bankAmount}x · S${(bankAmount * pricePerUnit).toFixed(0)}
+                  <span className="flex items-center justify-center gap-1.5">
+                    <Coins size={14} />
+                    {bankAmount}x · S${(bankAmount * pricePerUnit).toFixed(0)}
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2 text-base">
+                  <span className="flex items-center justify-center gap-1.5">
                     🔥 BANCAR
                   </span>
                 )}
@@ -269,7 +278,7 @@ export default function FeedCard({ trend, index, onOpenStats }) {
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min((bankAmount / maxAffordable) * 100, 100)}%` }}
-                  className="absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-2xl"
+                  className="absolute bottom-0 left-0 h-0.5 bg-white/40 rounded-b-xl"
                 />
               )}
             </div>
@@ -278,12 +287,65 @@ export default function FeedCard({ trend, index, onOpenStats }) {
               onClick={handleSell}
               disabled={!holding}
               whileTap={holding ? { scale: 0.9 } : {}}
-              className="bg-white/5 hover:bg-white/10 disabled:opacity-10 text-red text-xs font-bold
-                px-4 py-3 rounded-2xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5 shrink-0"
+              className="flex-1 bg-white/5 hover:bg-white/10 disabled:opacity-15 text-red text-xs sm:text-sm font-bold
+                py-2.5 rounded-xl cursor-pointer transition-all disabled:cursor-not-allowed border border-white/5"
             >
               Vender
             </motion.button>
+
+            <button
+              onClick={() => setShowShare(!showShare)}
+              className="w-10 h-10 shrink-0 rounded-xl bg-white/5 border border-white/5
+                flex items-center justify-center text-white/50 hover:text-white cursor-pointer transition-colors"
+            >
+              <Share2 size={16} />
+            </button>
           </div>
+
+          {/* Share menu */}
+          <AnimatePresence>
+            {showShare && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex gap-2 py-1">
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}?t=${trend.id}`
+                      navigator.clipboard?.writeText(`${trend.emoji} ${trend.name} (${trend.ticker}) - S$${trend.price.toFixed(2)} ${trend.change24h >= 0 ? '📈' : '📉'}${trend.change24h.toFixed(2)}% no STONKS! ${url}`)
+                      setShowShare(false)
+                    }}
+                    className="flex-1 bg-surface-hover border border-border rounded-lg py-2 text-[10px] text-text-secondary
+                      font-medium cursor-pointer hover:text-text-primary transition-colors"
+                  >
+                    📋 Copiar link
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: `${trend.name} no STONKS`, text: `${trend.emoji} ${trend.ticker} S$${trend.price.toFixed(2)}`, url: window.location.origin })
+                      }
+                      setShowShare(false)
+                    }}
+                    className="flex-1 bg-surface-hover border border-border rounded-lg py-2 text-[10px] text-text-secondary
+                      font-medium cursor-pointer hover:text-text-primary transition-colors"
+                  >
+                    📤 Compartilhar
+                  </button>
+                  <button
+                    onClick={() => setShowShare(false)}
+                    className="flex-1 bg-accent/10 border border-accent/20 rounded-lg py-2 text-[10px] text-accent
+                      font-medium cursor-pointer hover:bg-accent/20 transition-colors"
+                  >
+                    💬 Enviar no Chat
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* BANCOU overlay + confetti */}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil } from 'lucide-react'
+import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
 import NotificationPanel from '../notifications/NotificationPanel'
 import { useNotifications } from '../../context/NotificationContext'
@@ -10,7 +10,7 @@ import { useUser } from '../../context/UserContext'
 import { Link } from 'react-router-dom'
 import UserAvatar from '../ui/UserAvatar'
 
-export default function Header() {
+export default function Header({ onCreateMeme }) {
   const { lang, toggleLang } = useLang()
   const { balance } = useGame()
   const { user, creatorTitle } = useUser()
@@ -45,6 +45,14 @@ export default function Header() {
               {balance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </motion.div>
+
+          {/* Create meme - mobile */}
+          {onCreateMeme && (
+            <button onClick={onCreateMeme}
+              className="sm:hidden bg-accent rounded-lg p-1.5 text-white cursor-pointer hover:bg-accent-light transition-colors">
+              <Plus size={15} />
+            </button>
+          )}
 
           {/* Notifications */}
           <div className="relative">

@@ -39,7 +39,7 @@ function MainApp() {
         <NotificationProvider>
         <BrowserRouter>
           <div className="flex flex-col min-h-dvh bg-[#0a0a0c]">
-            <Header />
+            <Header onCreateMeme={() => setCreateOpen(true)} />
             <NewsTicker />
             <main className="flex-1 pb-16">
               <Routes>
@@ -56,16 +56,16 @@ function MainApp() {
             </main>
             <BottomNav />
 
-            {/* Create meme FAB */}
+            {/* Create meme FAB - desktop only, on mobile use header button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setCreateOpen(true)}
-              className="fixed z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-accent hover:bg-accent-light
-                text-white shadow-lg shadow-accent/30 flex items-center justify-center cursor-pointer
-                transition-colors bottom-[68px] right-3 sm:bottom-6 sm:right-24"
+              className="hidden sm:flex fixed z-30 w-14 h-14 rounded-full bg-accent hover:bg-accent-light
+                text-white shadow-lg shadow-accent/30 items-center justify-center cursor-pointer
+                transition-colors bottom-6 right-24"
             >
-              <Plus size={20} />
+              <Plus size={22} />
             </motion.button>
 
             <CreateMemeModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
