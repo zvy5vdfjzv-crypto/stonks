@@ -79,7 +79,24 @@ export function getCreatorTitle(score) {
 }
 
 export function UserProvider({ children }) {
-  const [user, setUser] = useLocalStorage('stonks_user', null)
+  const [rawUser, setRawUser] = useLocalStorage('stonks_user', null)
+
+  // Migrate old users - fill missing fields
+  const user = rawUser ? {
+    ...rawUser,
+    bio: rawUser.bio ?? '',
+    socialLinks: rawUser.socialLinks ?? { instagram: '', x: '', youtube: '', linkedin: '' },
+    verified: rawUser.email === 'pedronhobrab@gmail.com' ? 'stonks' : (rawUser.verified ?? null),
+    verifiedSecondary: rawUser.email === 'pedronhobrab@gmail.com' ? 'blue' : (rawUser.verifiedSecondary ?? null),
+    verifiedPlan: rawUser.verifiedPlan ?? null,
+    accountType: rawUser.email === 'pedronhobrab@gmail.com' ? 'owner' : (rawUser.accountType ?? 'personal'),
+    privacy: rawUser.privacy ?? { privateAccount: false, showActivity: 'followers', allowMentions: true },
+    screenTime: rawUser.screenTime ?? { totalMinutes: 0, sessions: [] },
+    ownedItems: rawUser.ownedItems ?? [],
+    equippedItems: rawUser.equippedItems ?? { hat: null, glasses: null, effect: null, frame: null },
+  } : null
+
+  const setUser = setRawUser
 
   const register = useCallback((data) => {
     setUser({
