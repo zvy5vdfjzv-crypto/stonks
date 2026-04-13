@@ -51,6 +51,12 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
     { id: 'privacy', icon: Lock, label: 'Privacidade' },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
     { id: 'screentime', icon: Clock, label: 'Tempo de uso' },
+    { id: 'logout', icon: X, label: 'Sair da conta', color: 'text-red', action: () => {
+      if (confirm('Tem certeza? Voce vai precisar recadastrar.')) {
+        localStorage.clear()
+        window.location.href = '/'
+      }
+    }},
   ]
 
   return (
