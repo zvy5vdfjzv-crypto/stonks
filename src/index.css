@@ -88,7 +88,7 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border-c); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-light-c); }
 
-::selection { background: #6C5CE740; color: #fff; }
+::selection { background: #6C5CE740; color: var(--text-p); }
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

@@ -29,6 +29,8 @@ import CreatorRankPage from './pages/CreatorRankPage'
 import ChatPage from './pages/ChatPage'
 import ShopPage from './pages/ShopPage'
 import VerificationPage from './pages/VerificationPage'
+import OfficialProfilePage from './pages/OfficialProfilePage'
+import SearchPage from './pages/SearchPage'
 
 // Reset page - access /reset to clear account and re-register
 function ResetPage() {
@@ -70,6 +72,8 @@ function MainApp() {
                 <Route path="/verification" element={<VerificationPage />} />
                 <Route path="/reset" element={<ResetPage />} />
                 <Route path="/chat" element={<ChatPage />} />
+                <Route path="/page/:id" element={<OfficialProfilePage />} />
+                <Route path="/search" element={<SearchPage />} />
               </Routes>
             </main>
             <BottomNav />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu } from 'lucide-react'
+import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu, Search } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
 import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
@@ -54,6 +54,13 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
               {balance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </span>
           </motion.div>
+
+          {/* Search */}
+          <Link to="/search"
+            className="bg-surface border border-border rounded-lg p-1.5 text-text-muted
+              hover:text-text-primary hover:border-accent/50 transition-all">
+            <Search size={15} />
+          </Link>
 
           {/* Create meme - mobile */}
           {onCreateMeme && (

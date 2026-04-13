@@ -183,7 +183,7 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
               <div className="flex gap-2 justify-center">
                 {SKIN_COLORS.map((c, i) => (
                   <button key={c} onClick={() => setSkinIdx(i)}
-                    className={`w-8 h-8 rounded-full cursor-pointer transition-all ${skinIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[#0a0a0c] scale-110' : 'hover:scale-105'}`}
+                    className={`w-8 h-8 rounded-full cursor-pointer transition-all ${skinIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[var(--bg-app)] scale-110' : 'hover:scale-105'}`}
                     style={{ background: c }} />
                 ))}
               </div>
@@ -195,7 +195,7 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
               <div className="flex gap-2 justify-center">
                 {HAIR_COLORS.map((c, i) => (
                   <button key={c} onClick={() => setHairIdx(i)}
-                    className={`w-8 h-8 rounded-full cursor-pointer transition-all ${hairIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[#0a0a0c] scale-110' : 'hover:scale-105'}`}
+                    className={`w-8 h-8 rounded-full cursor-pointer transition-all ${hairIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[var(--bg-app)] scale-110' : 'hover:scale-105'}`}
                     style={{ background: c }} />
                 ))}
               </div>
@@ -207,7 +207,7 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
               <div className="flex gap-2 justify-center">
                 {BG_COLORS.map((c, i) => (
                   <button key={c} onClick={() => setBgIdx(i)}
-                    className={`w-8 h-8 rounded-lg cursor-pointer transition-all ${bgIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[#0a0a0c] scale-110' : 'hover:scale-105'}`}
+                    className={`w-8 h-8 rounded-lg cursor-pointer transition-all ${bgIdx === i ? 'ring-2 ring-accent ring-offset-2 ring-offset-[var(--bg-app)] scale-110' : 'hover:scale-105'}`}
                     style={{ background: c }} />
                 ))}
               </div>

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Repeat2, MessageCircle, Send, TrendingUp, TrendingDown, ImagePlus, X, Rocket, Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useSocial } from '../context/SocialContext'
 import { useGame } from '../context/GameContext'
-import { useUser, BOOST_TIERS } from '../context/UserContext'
+import { useUser, BOOST_TIERS, STONKS_OFFICIAL_ACCOUNTS } from '../context/UserContext'
 import Badge from '../components/ui/Badge'
 import VerifiedBadge from '../components/ui/VerifiedBadge'
+import MentionInput, { RenderMentions } from '../components/ui/MentionInput'
 
 function timeAgo(ts) {
   const diff = Date.now() - ts
@@ -47,13 +49,11 @@ function ComposeBox({ onClose }) {
           🎮
         </div>
         <div className="flex-1 min-w-0">
-          <textarea
+          <MentionInput
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Lanca sua tese... 🚀"
+            onChange={setContent}
+            placeholder="Lanca sua tese... 🚀 (use @ para marcar)"
             rows={3}
-            className="w-full bg-transparent text-text-primary text-sm resize-none
-              placeholder:text-text-muted focus:outline-none"
           />
 
           {/* Image URL input */}
@@ -144,10 +144,14 @@ function ComposeBox({ onClose }) {
 function PostCard({ post, onLike, onRepost, onBoost }) {
   const { trends, balance } = useGame()
   const { user } = useUser()
+  const navigate = useNavigate()
   const linkedTrend = post.trendId ? trends.find(t => t.id === post.trendId) : null
   const [liked, setLiked] = useState(false)
   const [reposted, setReposted] = useState(false)
   const [showBoostMenu, setShowBoostMenu] = useState(false)
+
+  // Find official account for clickable name
+  const officialAccount = post.isOfficial ? STONKS_OFFICIAL_ACCOUNTS.find(a => a.handle === post.handle) : null
 
   const handleLike = () => {
     if (!liked) { onLike(post.id); setLiked(true) }
@@ -169,7 +173,10 @@ function PostCard({ post, onLike, onRepost, onBoost }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-semibold text-sm flex items-center ${post.isUserPost ? 'text-accent' : 'text-text-primary'}`}>
+            <span
+              className={`font-semibold text-sm flex items-center ${post.isUserPost ? 'text-accent' : 'text-text-primary'} ${officialAccount ? 'cursor-pointer hover:underline' : ''}`}
+              onClick={officialAccount ? () => navigate(`/page/${officialAccount.id}`) : undefined}
+            >
               {post.userId}
               {post.verified && <VerifiedBadge type={post.verified} size={13} />}
               {post.isUserPost && !post.verified && <VerifiedBadge type={user?.verified} secondary={user?.verifiedSecondary} size={13} />}
@@ -186,7 +193,14 @@ function PostCard({ post, onLike, onRepost, onBoost }) {
             <span className="text-text-muted text-xs">{timeAgo(post.timestamp)}</span>
           </div>
 
-          <p className="text-text-primary text-sm mt-1.5 whitespace-pre-wrap">{post.content}</p>
+          <p className="text-text-primary text-sm mt-1.5 whitespace-pre-wrap">
+            <RenderMentions
+              text={post.content}
+              onMentionClick={(handle, official) => {
+                if (official) navigate(`/page/${official.id}`)
+              }}
+            />
+          </p>
 
           {/* Image */}
           {post.image && (
