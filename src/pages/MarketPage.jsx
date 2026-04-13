@@ -43,7 +43,7 @@ export default function MarketPage() {
   }, [trends, activeTab, user?.niches])
 
   return (
-    <div className="pb-16">
+    <div className="pb-16 max-w-[500px] mx-auto">
       {/* Tabs - sticky */}
       <div className="sticky top-[41px] sm:top-[45px] z-10 flex items-center justify-center gap-1 px-3 py-1.5 bg-[var(--bg-app)]/95 backdrop-blur-xl border-b border-border/30">
         {TABS.map(tab => (

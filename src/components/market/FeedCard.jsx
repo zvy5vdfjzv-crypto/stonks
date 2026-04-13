@@ -73,7 +73,7 @@ export default function FeedCard({ trend, onOpenStats }) {
       </div>
 
       {/* Image - tap to like */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[480px] bg-surface-hover overflow-hidden"
+      <div className="relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden"
         onDoubleClick={() => { setLiked(true); handleBancar() }}>
         <img
           src={trend.thumbnail}
