@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useCallback } from 'react'
-import useLocalStorage from '../hooks/useLocalStorage'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 const UserContext = createContext()
 
@@ -78,62 +78,230 @@ export function getCreatorTitle(score) {
   return result
 }
 
+const OWNER_EMAIL = 'pedronhobrab@gmail.com'
+
+// Convert DB profile (snake_case) to app user (camelCase)
+function dbToUser(profile) {
+  if (!profile) return null
+  const email = profile.email?.trim().toLowerCase()
+  const isOwner = email === OWNER_EMAIL
+  return {
+    id: profile.id,
+    email: profile.email,
+    displayName: profile.display_name || '',
+    handle: profile.handle || '',
+    avatar: profile.avatar || '🎮',
+    avatarType: profile.avatar_type || 'emoji',
+    avatarConfig: null,
+    bio: profile.bio || '',
+    socialLinks: profile.social_links || { instagram: '', x: '', youtube: '', linkedin: '' },
+    niches: profile.niches || [],
+    verified: isOwner ? 'stonks' : (profile.verified || null),
+    verifiedSecondary: isOwner ? 'blue' : (profile.verified_secondary || null),
+    verifiedPlan: profile.verified_plan || null,
+    accountType: isOwner ? 'owner' : (profile.account_type || 'personal'),
+    creatorScore: profile.creator_score || 0,
+    followers: profile.followers || 0,
+    following: profile.following || 0,
+    memesPosted: profile.memes_posted || 0,
+    totalBancadas: profile.total_bancadas || 0,
+    totalViews: profile.total_views || 0,
+    privacy: profile.privacy || { privateAccount: false, showActivity: 'followers', allowMentions: true },
+    screenTime: profile.screen_time || { totalMinutes: 0, sessions: [] },
+    ownedItems: profile.owned_items || [],
+    equippedItems: profile.equipped_items || { hat: null, glasses: null, effect: null, frame: null },
+    createdAt: profile.created_at ? new Date(profile.created_at).getTime() : Date.now(),
+  }
+}
+
+// Convert app user fields to DB columns for update
+function userToDb(fields) {
+  const map = {
+    displayName: 'display_name',
+    handle: 'handle',
+    avatar: 'avatar',
+    avatarType: 'avatar_type',
+    bio: 'bio',
+    socialLinks: 'social_links',
+    niches: 'niches',
+    verified: 'verified',
+    verifiedSecondary: 'verified_secondary',
+    verifiedPlan: 'verified_plan',
+    accountType: 'account_type',
+    creatorScore: 'creator_score',
+    followers: 'followers',
+    following: 'following',
+    memesPosted: 'memes_posted',
+    totalBancadas: 'total_bancadas',
+    totalViews: 'total_views',
+    privacy: 'privacy',
+    screenTime: 'screen_time',
+    ownedItems: 'owned_items',
+    equippedItems: 'equipped_items',
+  }
+  const db = {}
+  for (const [key, val] of Object.entries(fields)) {
+    if (map[key]) db[map[key]] = val
+  }
+  return db
+}
+
 export function UserProvider({ children }) {
-  const [rawUser, setRawUser] = useLocalStorage('stonks_user', null)
+  const [user, setUser] = useState(null)
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState(null)
 
-  const ownerEmail = 'pedronhobrab@gmail.com'
-
-  // Migrate old users - fill missing fields
-  const isOwner = !!(rawUser?.email && rawUser.email.trim().toLowerCase() === ownerEmail)
-  const user = rawUser ? {
-    ...rawUser,
-    bio: rawUser.bio ?? '',
-    socialLinks: rawUser.socialLinks ?? { instagram: '', x: '', youtube: '', linkedin: '' },
-    verified: isOwner ? 'stonks' : (rawUser.verified || null),
-    verifiedSecondary: isOwner ? 'blue' : (rawUser.verifiedSecondary || null),
-    verifiedPlan: rawUser.verifiedPlan ?? null,
-    accountType: isOwner ? 'owner' : (rawUser.accountType ?? 'personal'),
-    privacy: rawUser.privacy ?? { privateAccount: false, showActivity: 'followers', allowMentions: true },
-    screenTime: rawUser.screenTime ?? { totalMinutes: 0, sessions: [] },
-    ownedItems: rawUser.ownedItems ?? [],
-    equippedItems: rawUser.equippedItems ?? { hat: null, glasses: null, effect: null, frame: null },
-  } : null
-
-  const setUser = setRawUser
-
-  const register = useCallback((data) => {
-    setUser({
-      email: data.email,
-      displayName: data.displayName,
-      handle: data.handle.startsWith('@') ? data.handle : `@${data.handle}`,
-      avatar: data.avatar || '🎮',
-      avatarType: data.avatarType || 'emoji',
-      avatarConfig: data.avatarConfig || null,
-      niches: data.niches || [],
-      createdAt: Date.now(),
-      creatorScore: 0,
-      followers: 0,
-      following: 0,
-      memesPosted: 0,
-      totalBancadas: 0,
-      totalViews: 0,
-      bio: '',
-      socialLinks: { instagram: '', x: '', youtube: '', linkedin: '' },
-      verified: data.email?.trim().toLowerCase() === ownerEmail ? 'stonks' : null,
-      verifiedSecondary: data.email?.trim().toLowerCase() === ownerEmail ? 'blue' : null,
-      verifiedPlan: null,
-      accountType: data.email?.trim().toLowerCase() === ownerEmail ? 'owner' : 'personal',
-      privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
-      screenTime: { totalMinutes: 0, sessions: [] },
-      ownedItems: [],
-      equippedItems: { hat: null, glasses: null, effect: null, frame: null },
-    })
+  // Fetch profile from Supabase
+  const fetchProfile = useCallback(async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    if (error) {
+      console.warn('Profile fetch error:', error.message)
+      return null
+    }
+    return data
   }, [])
 
+  // Sync local state to Supabase (debounced)
+  const syncToDb = useCallback(async (updates) => {
+    if (!session?.user?.id) return
+    const dbUpdates = userToDb(updates)
+    if (Object.keys(dbUpdates).length === 0) return
+    const { error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', session.user.id)
+    if (error) console.warn('Profile sync error:', error.message)
+  }, [session])
+
+  // Listen to auth state changes
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s)
+      if (s?.user) {
+        fetchProfile(s.user.id).then(profile => {
+          if (profile && profile.handle) {
+            setUser(dbToUser(profile))
+          }
+          // If profile exists but no handle, user needs to complete onboarding
+          setLoading(false)
+        })
+      } else {
+        setLoading(false)
+      }
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s)
+      if (!s?.user) {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [fetchProfile])
+
+  // Register - create auth account + profile
+  const register = useCallback(async (data) => {
+    setAuthError(null)
+    // Sign up with Supabase auth
+    const { data: authData, error: authErr } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password || 'stonks1234', // fallback password
+    })
+    if (authErr) {
+      setAuthError(authErr.message)
+      return false
+    }
+
+    const userId = authData.user?.id
+    if (!userId) {
+      setAuthError('Erro ao criar conta')
+      return false
+    }
+
+    const handle = data.handle.startsWith('@') ? data.handle : `@${data.handle}`
+    const email = data.email?.trim().toLowerCase()
+    const isOwner = email === OWNER_EMAIL
+
+    // Upsert profile (trigger may have created a minimal one)
+    const profileData = {
+      id: userId,
+      email: data.email,
+      display_name: data.displayName,
+      handle: handle,
+      avatar: data.avatar || '🎮',
+      avatar_type: data.avatarType || 'emoji',
+      niches: data.niches || [],
+      bio: '',
+      social_links: { instagram: '', x: '', youtube: '', linkedin: '' },
+      verified: isOwner ? 'stonks' : null,
+      verified_secondary: isOwner ? 'blue' : null,
+      account_type: isOwner ? 'owner' : 'personal',
+      creator_score: 0,
+      followers: 0,
+      following: 0,
+      memes_posted: 0,
+      total_bancadas: 0,
+      total_views: 0,
+      privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
+      screen_time: { totalMinutes: 0, sessions: [] },
+      owned_items: [],
+      equipped_items: { hat: null, glasses: null, effect: null, frame: null },
+    }
+
+    const { error: profileErr } = await supabase
+      .from('profiles')
+      .upsert(profileData, { onConflict: 'id' })
+
+    if (profileErr) {
+      setAuthError(profileErr.message)
+      return false
+    }
+
+    setUser(dbToUser(profileData))
+    return true
+  }, [])
+
+  // Login with email/password
+  const login = useCallback(async (email, password) => {
+    setAuthError(null)
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) {
+      setAuthError(error.message)
+      return false
+    }
+
+    const profile = await fetchProfile(authData.user.id)
+    if (profile && profile.handle) {
+      setUser(dbToUser(profile))
+    }
+    return true
+  }, [fetchProfile])
+
+  // Logout
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+    // Clear local caches
+    localStorage.removeItem('stonks_notif_muted')
+  }, [])
+
+  // Profile update methods - update local state immediately + sync to DB
   const updateProfile = useCallback((data) => {
     setUser(prev => {
       if (!prev) return prev
-      return {
+      const updated = {
         ...prev,
         ...(data.displayName !== undefined && { displayName: data.displayName }),
         ...(data.handle !== undefined && { handle: data.handle.startsWith('@') ? data.handle : `@${data.handle}` }),
@@ -142,28 +310,51 @@ export function UserProvider({ children }) {
         ...(data.bio !== undefined && { bio: data.bio }),
         ...(data.socialLinks !== undefined && { socialLinks: { ...prev.socialLinks, ...data.socialLinks } }),
       }
+      // Sync changed fields to DB
+      const changes = {}
+      if (data.displayName !== undefined) changes.displayName = updated.displayName
+      if (data.handle !== undefined) changes.handle = updated.handle
+      if (data.avatar !== undefined) changes.avatar = updated.avatar
+      if (data.avatarType !== undefined) changes.avatarType = updated.avatarType
+      if (data.bio !== undefined) changes.bio = updated.bio
+      if (data.socialLinks !== undefined) changes.socialLinks = updated.socialLinks
+      syncToDb(changes)
+      return updated
     })
-  }, [])
+  }, [syncToDb])
 
   const updateNiches = useCallback((niches) => {
     setUser(prev => prev ? { ...prev, niches } : prev)
-  }, [])
+    syncToDb({ niches })
+  }, [syncToDb])
 
   const addCreatorScore = useCallback((points) => {
-    setUser(prev => prev ? { ...prev, creatorScore: prev.creatorScore + points } : prev)
-  }, [])
+    setUser(prev => {
+      if (!prev) return prev
+      const newScore = prev.creatorScore + points
+      syncToDb({ creatorScore: newScore })
+      return { ...prev, creatorScore: newScore }
+    })
+  }, [syncToDb])
 
   const incrementStat = useCallback((stat, amount = 1) => {
-    setUser(prev => prev ? { ...prev, [stat]: (prev[stat] || 0) + amount } : prev)
-  }, [])
+    setUser(prev => {
+      if (!prev) return prev
+      const newVal = (prev[stat] || 0) + amount
+      syncToDb({ [stat]: newVal })
+      return { ...prev, [stat]: newVal }
+    })
+  }, [syncToDb])
 
   const buyItem = useCallback((itemId) => {
     setUser(prev => {
       if (!prev || prev.ownedItems.includes(itemId)) return prev
-      return { ...prev, ownedItems: [...prev.ownedItems, itemId] }
+      const newItems = [...prev.ownedItems, itemId]
+      syncToDb({ ownedItems: newItems })
+      return { ...prev, ownedItems: newItems }
     })
     return true
-  }, [])
+  }, [syncToDb])
 
   const equipItem = useCallback((itemId) => {
     const item = SHOP_ITEMS.find(i => i.id === itemId)
@@ -172,39 +363,50 @@ export function UserProvider({ children }) {
       if (!prev) return prev
       const equipped = { ...prev.equippedItems }
       equipped[item.category] = equipped[item.category] === itemId ? null : itemId
+      syncToDb({ equippedItems: equipped })
       return { ...prev, equippedItems: equipped }
     })
-  }, [])
+  }, [syncToDb])
 
   const setVerified = useCallback((type, plan) => {
     setUser(prev => prev ? { ...prev, verified: type, verifiedPlan: plan } : prev)
-  }, [setUser])
+    syncToDb({ verified: type, verifiedPlan: plan })
+  }, [syncToDb])
 
   const updatePrivacy = useCallback((key, value) => {
     setUser(prev => {
       if (!prev) return prev
       const p = prev.privacy || { privateAccount: false, showActivity: 'followers', allowMentions: true }
-      return { ...prev, privacy: { ...p, [key]: value } }
+      const newPrivacy = { ...p, [key]: value }
+      syncToDb({ privacy: newPrivacy })
+      return { ...prev, privacy: newPrivacy }
     })
-  }, [setUser])
+  }, [syncToDb])
 
   const addScreenTime = useCallback((minutes) => {
     setUser(prev => {
       if (!prev) return prev
       const st = prev.screenTime || { totalMinutes: 0, sessions: [] }
-      return { ...prev, screenTime: { ...st, totalMinutes: (st.totalMinutes || 0) + minutes } }
+      const newSt = { ...st, totalMinutes: (st.totalMinutes || 0) + minutes }
+      // Don't sync screen time on every minute - too noisy
+      return { ...prev, screenTime: newSt }
     })
-  }, [setUser])
+  }, [])
 
-  const isRegistered = !!user
+  const isRegistered = !!user && !!user.handle
   const creatorTitle = user ? getCreatorTitle(user.creatorScore) : CREATOR_TITLES[0]
 
   return (
     <UserContext.Provider value={{
       user,
+      session,
+      loading,
+      authError,
       isRegistered,
       creatorTitle,
       register,
+      login,
+      logout,
       updateProfile,
       updateNiches,
       addCreatorScore,

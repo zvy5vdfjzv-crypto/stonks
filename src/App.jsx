@@ -105,19 +105,19 @@ function MainApp() {
 }
 
 function AppGate() {
-  const { isRegistered } = useUser()
+  const { isRegistered, loading, logout } = useUser()
   const [showSplash, setShowSplash] = useState(true)
 
   // Allow /reset even when logged in
   if (window.location.pathname === '/reset') {
-    localStorage.removeItem('stonks_user')
+    logout?.()
     localStorage.removeItem('stonks_notif_muted')
     localStorage.removeItem('stonks_theme')
     window.location.href = '/'
     return null
   }
 
-  if (showSplash) {
+  if (showSplash || loading) {
     return <SplashScreen onDone={() => setShowSplash(false)} />
   }
 

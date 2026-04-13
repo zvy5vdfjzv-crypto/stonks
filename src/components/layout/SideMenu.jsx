@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Shield, Settings, Eye, Clock, Moon, Sun, Type, ChevronRight, Lock, Users, AtSign, BarChart2 } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
+import { supabase } from '../../lib/supabase'
 import UserAvatar from '../ui/UserAvatar'
 import VerifiedBadge from '../ui/VerifiedBadge'
 
@@ -46,9 +47,10 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
     { id: 'privacy', icon: Lock, label: 'Privacidade' },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
     { id: 'screentime', icon: Clock, label: 'Tempo de uso' },
-    { id: 'logout', icon: X, label: 'Sair da conta', color: 'text-red', action: () => {
-      if (confirm('Tem certeza? Voce vai precisar recadastrar.')) {
-        localStorage.clear()
+    { id: 'logout', icon: X, label: 'Sair da conta', color: 'text-red', action: async () => {
+      if (confirm('Tem certeza? Voce vai sair da conta.')) {
+        localStorage.removeItem('stonks_notif_muted')
+        await supabase.auth.signOut()
         window.location.href = '/'
       }
     }},

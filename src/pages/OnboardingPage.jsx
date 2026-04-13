@@ -242,8 +242,9 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
 }
 
 export default function OnboardingPage() {
-  const { register } = useUser()
+  const { register, login, authError } = useUser()
   const { t } = useLang()
+  const [mode, setMode] = useState('welcome') // 'welcome', 'login', 'register'
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -254,6 +255,7 @@ export default function OnboardingPage() {
   const [avatarType, setAvatarType] = useState('emoji')
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [selectedNiches, setSelectedNiches] = useState([])
+  const [submitting, setSubmitting] = useState(false)
 
   const toggleNiche = (niche) => {
     setSelectedNiches(prev =>
@@ -263,9 +265,10 @@ export default function OnboardingPage() {
     )
   }
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (selectedNiches.length < 2) return
-    register({
+    setSubmitting(true)
+    await register({
       email,
       password,
       phone,
@@ -275,9 +278,18 @@ export default function OnboardingPage() {
       avatarType,
       niches: selectedNiches,
     })
+    setSubmitting(false)
   }
 
-  const canNextStep1 = displayName.trim().length >= 2 && handle.trim().length >= 2 && email.includes('@')
+  const handleLogin = async () => {
+    if (!email.includes('@') || password.length < 4) return
+    setSubmitting(true)
+    const ok = await login(email, password)
+    setSubmitting(false)
+    if (!ok) return // authError will show
+  }
+
+  const canNextStep1 = displayName.trim().length >= 2 && handle.trim().length >= 2 && email.includes('@') && password.length >= 6
 
   return (
     <div className="min-h-dvh bg-[var(--bg-app)] flex items-center justify-center px-4 py-8">
@@ -287,7 +299,65 @@ export default function OnboardingPage() {
         className="w-full max-w-md"
       >
         <AnimatePresence mode="wait">
-          {step === 1 && (
+          {/* Welcome screen */}
+          {mode === 'welcome' && (
+            <motion.div key="welcome" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="space-y-5 text-center">
+              <div className="mb-8">
+                <div className="w-20 h-20 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                  <Zap className="text-accent" size={40} fill="currentColor" />
+                </div>
+                <h1 className="text-4xl font-bold text-text-primary">
+                  STON<span className="text-accent">KS</span>
+                </h1>
+                <p className="text-text-secondary text-sm mt-2">A Bolsa dos Virais</p>
+              </div>
+              <button onClick={() => setMode('register')}
+                className="w-full bg-accent hover:bg-accent-light text-white py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all flex items-center justify-center gap-2">
+                <Sparkles size={16} /> Criar conta
+              </button>
+              <button onClick={() => setMode('login')}
+                className="w-full bg-surface border border-border hover:border-accent/30 text-text-primary py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all">
+                Ja tenho conta
+              </button>
+            </motion.div>
+          )}
+
+          {/* Login screen */}
+          {mode === 'login' && (
+            <motion.div key="login" initial={{ opacity: 0, x: 200 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+              className="space-y-5">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                  <Zap className="text-accent" size={32} fill="currentColor" />
+                </div>
+                <h2 className="text-xl font-bold text-text-primary">Entrar no STONKS</h2>
+              </div>
+              {authError && (
+                <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
+              )}
+              <div>
+                <label className="text-text-secondary text-xs font-medium block mb-1.5">Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+              </div>
+              <div>
+                <label className="text-text-secondary text-xs font-medium block mb-1.5">Senha</label>
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha"
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+              </div>
+              <button onClick={handleLogin} disabled={submitting || !email.includes('@') || password.length < 4}
+                className="w-full bg-accent hover:bg-accent-light disabled:opacity-30 text-white py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all disabled:cursor-not-allowed">
+                {submitting ? 'Entrando...' : 'Entrar'}
+              </button>
+              <button onClick={() => { setMode('welcome'); setPassword(''); setEmail('') }}
+                className="w-full text-text-muted hover:text-text-secondary text-xs py-2 cursor-pointer transition-colors">
+                Voltar
+              </button>
+            </motion.div>
+          )}
+
+          {mode === 'register' && step === 1 && (
             <motion.div
               key="step1"
               initial={{ opacity: 0 }}
@@ -303,8 +373,12 @@ export default function OnboardingPage() {
                 <h1 className="text-3xl font-bold text-text-primary">
                   STON<span className="text-accent">KS</span>
                 </h1>
-                <p className="text-text-secondary text-sm mt-2">A Bolsa dos Virais</p>
+                <p className="text-text-secondary text-sm mt-2">Criar sua conta</p>
               </div>
+
+              {authError && (
+                <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
+              )}
 
               {/* Avatar picker */}
               <AvatarPicker
@@ -376,7 +450,7 @@ export default function OnboardingPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimo 4 caracteres"
+                  placeholder="Minimo 6 caracteres"
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50"
                 />
               </div>
@@ -393,7 +467,7 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          {step === 2 && (
+          {mode === 'register' && step === 2 && (
             <motion.div
               key="step2"
               initial={{ opacity: 0, x: 200 }}
@@ -451,18 +525,24 @@ export default function OnboardingPage() {
                 </p>
                 <button
                   onClick={handleRegister}
-                  disabled={selectedNiches.length < 2}
+                  disabled={selectedNiches.length < 2 || submitting}
                   className="w-full bg-green hover:bg-green/80 disabled:opacity-30 text-white py-3.5 rounded-xl
                     font-bold text-sm cursor-pointer transition-all disabled:cursor-not-allowed
                     flex items-center justify-center gap-2"
                 >
-                  <Sparkles size={16} /> Entrar no STONKS
+                  <Sparkles size={16} /> {submitting ? 'Criando conta...' : 'Entrar no STONKS'}
                 </button>
                 <button
                   onClick={() => setStep(1)}
                   className="w-full text-text-muted hover:text-text-secondary text-xs py-2 cursor-pointer transition-colors"
                 >
                   Voltar
+                </button>
+                <button
+                  onClick={() => { setMode('welcome'); setStep(1) }}
+                  className="w-full text-text-muted hover:text-text-secondary text-[10px] py-1 cursor-pointer transition-colors"
+                >
+                  Ja tenho conta
                 </button>
               </div>
             </motion.div>
