@@ -1,6 +1,48 @@
 import { createContext, useContext, useReducer, useCallback } from 'react'
 
 const mockPosts = [
+  // STONKS Official accounts posts
+  {
+    id: 'so1', userId: 'STONKS Car', avatar: '🏎️', handle: '@stonkscar', verified: 'stonks',
+    content: '⚡ Tesla Cybertruck flagrada com a porta caindo no meio da highway. O meme que nao para de dar. $CYBR subindo 18% hoje. Quem bancou ta rindo.',
+    image: 'https://images.unsplash.com/photo-1562911791-c7a97b729ec5?w=600&h=400&fit=crop',
+    trendId: 'cybertruck-memes',
+    likes: 4520, reposts: 890, replies: 234,
+    timestamp: Date.now() - 90000, isOfficial: true,
+  },
+  {
+    id: 'so2', userId: 'STONKS Gaming', avatar: '🎮', handle: '@stonksgame', verified: 'stonks',
+    content: '🌴 LEAK: GTA 6 gameplay de 2 minutos vazou no Reddit e foi deletado em 15 minutos. Quem viu, viu. $GTA6 em alta historica.',
+    image: 'https://images.unsplash.com/photo-1533310266094-8898a03807dd?w=600&h=400&fit=crop',
+    trendId: 'gta6-hype',
+    likes: 12800, reposts: 3400, replies: 1567,
+    timestamp: Date.now() - 200000, isOfficial: true,
+  },
+  {
+    id: 'so3', userId: 'STONKS Money', avatar: '💰', handle: '@stonksmoney', verified: 'stonks',
+    content: '💎 WallStreetBets em modo full YOLO. $DMNDS acumula 5.600 bancadas em 24h. Os diamond hands estao de volta. Epoca de loss porn ou gain porn?',
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&h=400&fit=crop',
+    trendId: 'wsb-diamond-hands',
+    likes: 6700, reposts: 1200, replies: 445,
+    timestamp: Date.now() - 400000, isOfficial: true,
+  },
+  {
+    id: 'so4', userId: 'STONKS Tech', avatar: '💻', handle: '@stonkstech', verified: 'stonks',
+    content: '🤖 ChatGPT agora gera memes melhores que humanos. O mercado de $GPT ta pegando fogo. IA vai substituir memeiros?',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop',
+    trendId: 'chatgpt-memes',
+    likes: 3400, reposts: 780, replies: 290,
+    timestamp: Date.now() - 700000, isOfficial: true,
+  },
+  {
+    id: 'so5', userId: 'STONKS Sport', avatar: '⚽', handle: '@stonkssport', verified: 'stonks',
+    content: '⚽ O edit sigma do gol de Messi bateu 50M de views. Phonk + futebol = formula imbativel. $GOAT so sobe.',
+    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&h=400&fit=crop',
+    trendId: 'football-edits',
+    likes: 8900, reposts: 2100, replies: 567,
+    timestamp: Date.now() - 1000000, isOfficial: true,
+  },
+  // Regular user posts
   {
     id: 'p1', userId: 'CryptoMemeLord', avatar: '😎',
     content: '🚀 $PEDRO vai explodir essa semana. O TikTok ta cheio de remix. Quem nao entrou ainda vai chorar. BANQUEM AGORA!',
