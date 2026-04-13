@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { LanguageProvider, useLang } from './context/LanguageContext'
@@ -28,6 +28,12 @@ import InsightsPage from './pages/InsightsPage'
 import CreatorRankPage from './pages/CreatorRankPage'
 import ChatPage from './pages/ChatPage'
 import ShopPage from './pages/ShopPage'
+import VerificationPage from './pages/VerificationPage'
+
+function SideMenuWithNav({ isOpen, onClose }) {
+  const navigate = useNavigate()
+  return <SideMenu isOpen={isOpen} onClose={onClose} onNavigate={(path) => navigate(path)} />
+}
 
 function MainApp() {
   const { lang } = useLang()
@@ -53,6 +59,7 @@ function MainApp() {
                 <Route path="/insights" element={<InsightsPage />} />
                 <Route path="/creator-rank" element={<CreatorRankPage />} />
                 <Route path="/shop" element={<ShopPage />} />
+                <Route path="/verification" element={<VerificationPage />} />
                 <Route path="/chat" element={<ChatPage />} />
               </Routes>
             </main>
@@ -71,7 +78,7 @@ function MainApp() {
             </motion.button>
 
             <CreateMemeModal isOpen={createOpen} onClose={() => setCreateOpen(false)} />
-            <SideMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+            <SideMenuWithNav isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
             <ChatSidePanel />
             <PushNotifications />
             <NotificationBridge />

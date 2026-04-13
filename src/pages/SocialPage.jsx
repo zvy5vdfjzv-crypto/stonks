@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Repeat2, MessageCircle, Send, TrendingUp, TrendingDown, ImagePlus, X, Rocket, Zap } from 'lucide-react'
 import { useSocial } from '../context/SocialContext'
 import { useGame } from '../context/GameContext'
-import { BOOST_TIERS } from '../context/UserContext'
+import { useUser, BOOST_TIERS } from '../context/UserContext'
 import Badge from '../components/ui/Badge'
+import VerifiedBadge from '../components/ui/VerifiedBadge'
 
 function timeAgo(ts) {
   const diff = Date.now() - ts
@@ -142,6 +143,7 @@ function ComposeBox({ onClose }) {
 
 function PostCard({ post, onLike, onRepost, onBoost }) {
   const { trends, balance } = useGame()
+  const { user } = useUser()
   const linkedTrend = post.trendId ? trends.find(t => t.id === post.trendId) : null
   const [liked, setLiked] = useState(false)
   const [reposted, setReposted] = useState(false)
@@ -167,8 +169,9 @@ function PostCard({ post, onLike, onRepost, onBoost }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-semibold text-sm ${post.isUserPost ? 'text-accent' : 'text-text-primary'}`}>
+            <span className={`font-semibold text-sm flex items-center ${post.isUserPost ? 'text-accent' : 'text-text-primary'}`}>
               {post.userId}
+              {post.isUserPost && <VerifiedBadge type={user?.verified} size={13} />}
             </span>
             {post.sentiment && (
               <Badge color={post.sentiment === 'bull' ? 'green' : 'red'}>

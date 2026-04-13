@@ -5,6 +5,7 @@ import { useUser, getCreatorTitle } from '../context/UserContext'
 import { useGame } from '../context/GameContext'
 import { useSocial } from '../context/SocialContext'
 import Badge from '../components/ui/Badge'
+import VerifiedBadge from '../components/ui/VerifiedBadge'
 import EditProfileModal from '../components/profile/EditProfileModal'
 
 function SocialIcon({ type, size = 14, className = '' }) {
@@ -92,7 +93,7 @@ export default function InsightsPage() {
           {/* Stats row */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="font-bold text-text-primary text-lg">{user.displayName}</h1>
+              <h1 className="font-bold text-text-primary text-lg flex items-center gap-1">{user.displayName}<VerifiedBadge type={user.verified} size={16} /></h1>
               <span className="text-sm">{creatorTitle.badge}</span>
             </div>
             <p className="text-accent text-sm">{user.handle}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
+import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
 import { useNotifications } from '../../context/NotificationContext'
 import { useLang } from '../../context/LanguageContext'
@@ -110,7 +111,9 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
                   >
                     {/* User info */}
                     <div className="px-4 py-3 border-b border-border">
-                      <p className="font-semibold text-text-primary text-sm">{user?.displayName}</p>
+                      <p className="font-semibold text-text-primary text-sm flex items-center">
+                        {user?.displayName}<VerifiedBadge type={user?.verified} size={14} />
+                      </p>
                       <p className="text-accent text-xs">{user?.handle}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <span className="text-sm">{creatorTitle.badge}</span>

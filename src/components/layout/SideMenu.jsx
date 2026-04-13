@@ -18,7 +18,7 @@ function VerifiedBadge({ type, size = 14 }) {
 
 export { VerifiedBadge }
 
-export default function SideMenu({ isOpen, onClose, onOpenVerification }) {
+export default function SideMenu({ isOpen, onClose, onNavigate }) {
   const { user, creatorTitle, updatePrivacy, addScreenTime } = useUser()
   const [activeSection, setActiveSection] = useState(null)
   const [darkMode, setDarkMode] = useState(true)
@@ -33,7 +33,7 @@ export default function SideMenu({ isOpen, onClose, onOpenVerification }) {
   if (!user) return null
 
   const sections = [
-    { id: 'verification', icon: Shield, label: 'Verificacao', color: 'text-blue', action: () => { onClose(); onOpenVerification?.() } },
+    { id: 'verification', icon: Shield, label: 'Verificacao', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
     { id: 'settings', icon: Settings, label: 'Configuracoes' },
     { id: 'privacy', icon: Lock, label: 'Privacidade' },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
