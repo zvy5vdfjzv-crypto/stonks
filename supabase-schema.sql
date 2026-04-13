@@ -42,8 +42,13 @@ CREATE POLICY "Users can insert own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email)
-  VALUES (NEW.id, NEW.email);
+  INSERT INTO public.profiles (id, email, handle)
+  VALUES (NEW.id, NEW.email, '@user_' || substr(NEW.id::text, 1, 8));
+  RETURN NEW;
+EXCEPTION WHEN unique_violation THEN
+  -- If handle conflicts, retry with longer suffix
+  INSERT INTO public.profiles (id, email, handle)
+  VALUES (NEW.id, NEW.email, '@user_' || substr(NEW.id::text, 1, 12));
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

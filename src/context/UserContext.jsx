@@ -146,36 +146,85 @@ function userToDb(fields) {
   return db
 }
 
+// Translate common Supabase errors to Portuguese
+function translateAuthError(msg) {
+  const map = {
+    'Invalid login credentials': 'Email ou senha incorretos',
+    'Email not confirmed': 'Email nao confirmado. Verifique sua caixa de entrada.',
+    'User already registered': 'Este email ja esta cadastrado. Clique "Ja tenho conta" para entrar.',
+    'Password should be at least 6 characters': 'A senha deve ter no minimo 6 caracteres',
+    'Unable to validate email address: invalid format': 'Formato de email invalido',
+    'Too many requests': 'Muitas tentativas. Aguarde um momento e tente novamente.',
+    'For security purposes, you can only request this after': 'Aguarde um momento antes de tentar novamente.',
+    'Auth session missing!': 'Sessao expirada. Faca login novamente.',
+  }
+  for (const [en, pt] of Object.entries(map)) {
+    if (msg?.includes(en)) return pt
+  }
+  return msg
+}
+
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState(null)
 
+  // Clear old localStorage data from pre-Supabase era
+  useEffect(() => {
+    localStorage.removeItem('stonks_user')
+  }, [])
+
   // Fetch profile from Supabase
   const fetchProfile = useCallback(async (userId) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    if (error) {
-      console.warn('Profile fetch error:', error.message)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (error) {
+        console.warn('Profile fetch error:', error.message)
+        return null
+      }
+      return data
+    } catch (err) {
+      console.error('Profile fetch exception:', err)
       return null
     }
-    return data
   }, [])
+
+  // Ensure profile row exists (handles cases where trigger failed)
+  const ensureProfile = useCallback(async (userId, email) => {
+    let profile = await fetchProfile(userId)
+    if (!profile) {
+      // Trigger may have failed (e.g. UNIQUE constraint on handle default)
+      // Create the profile row manually
+      const tempHandle = `@user_${userId.slice(0, 8)}`
+      await supabase.from('profiles').upsert({
+        id: userId,
+        email: email,
+        handle: tempHandle,
+      }).select().single()
+      profile = await fetchProfile(userId)
+    }
+    return profile
+  }, [fetchProfile])
 
   // Sync local state to Supabase (debounced)
   const syncToDb = useCallback(async (updates) => {
     if (!session?.user?.id) return
     const dbUpdates = userToDb(updates)
     if (Object.keys(dbUpdates).length === 0) return
-    const { error } = await supabase
-      .from('profiles')
-      .update(dbUpdates)
-      .eq('id', session.user.id)
-    if (error) console.warn('Profile sync error:', error.message)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', session.user.id)
+      if (error) console.warn('Profile sync error:', error.message)
+    } catch (err) {
+      console.warn('Profile sync exception:', err)
+    }
   }, [session])
 
   // Listen to auth state changes
@@ -184,16 +233,18 @@ export function UserProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
       if (s?.user) {
-        fetchProfile(s.user.id).then(profile => {
-          if (profile && profile.handle) {
+        ensureProfile(s.user.id, s.user.email).then(profile => {
+          if (profile) {
             setUser(dbToUser(profile))
           }
-          // If profile exists but no handle, user needs to complete onboarding
           setLoading(false)
-        })
+        }).catch(() => setLoading(false))
       } else {
         setLoading(false)
       }
+    }).catch((err) => {
+      console.error('Session check failed:', err)
+      setLoading(false)
     })
 
     // Listen for auth changes
@@ -205,112 +256,147 @@ export function UserProvider({ children }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [fetchProfile])
+  }, [fetchProfile, ensureProfile])
 
   // Register - create auth account + profile
   const register = useCallback(async (data) => {
     setAuthError(null)
     const password = data.password || 'stonks1234'
 
-    // Sign up with Supabase auth (auto-confirm if possible)
-    const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: data.email,
-      password,
-      options: { data: { display_name: data.displayName } },
-    })
-    if (authErr) {
-      setAuthError(authErr.message)
-      return false
-    }
-
-    let userId = authData.user?.id
-    if (!userId) {
-      setAuthError('Erro ao criar conta')
-      return false
-    }
-
-    // If no session (email confirmation required), auto sign-in
-    if (!authData.session) {
-      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+    try {
+      // Sign up with Supabase auth
+      const { data: authData, error: authErr } = await supabase.auth.signUp({
         email: data.email,
         password,
+        options: { data: { display_name: data.displayName } },
       })
-      if (signInErr) {
-        // If sign-in fails, email might need confirmation
-        setAuthError('Conta criada! Verifique seu email para confirmar, depois clique "Ja tenho conta" para entrar.')
+      if (authErr) {
+        setAuthError(translateAuthError(authErr.message))
         return false
       }
-      userId = signInData.user?.id || userId
-    }
 
-    const handle = data.handle.startsWith('@') ? data.handle : `@${data.handle}`
-    const email = data.email?.trim().toLowerCase()
-    const isOwner = email === OWNER_EMAIL
+      let userId = authData.user?.id
+      if (!userId) {
+        setAuthError('Erro ao criar conta. Tente novamente.')
+        return false
+      }
 
-    const profileUpdate = {
-      display_name: data.displayName,
-      handle: handle,
-      avatar: data.avatar || '🎮',
-      avatar_type: data.avatarType || 'emoji',
-      niches: data.niches || [],
-      bio: '',
-      social_links: { instagram: '', x: '', youtube: '', linkedin: '' },
-      verified: isOwner ? 'stonks' : null,
-      verified_secondary: isOwner ? 'blue' : null,
-      account_type: isOwner ? 'owner' : 'personal',
-    }
+      // If no session (email confirmation required), auto sign-in
+      if (!authData.session) {
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password,
+        })
+        if (signInErr) {
+          setAuthError('Conta criada! Verifique seu email para confirmar, depois clique "Ja tenho conta" para entrar.')
+          return false
+        }
+        userId = signInData.user?.id || userId
+      }
 
-    // Trigger already created the profile row, so just update it
-    const { error: profileErr } = await supabase
-      .from('profiles')
-      .update(profileUpdate)
-      .eq('id', userId)
+      const handle = data.handle.startsWith('@') ? data.handle : `@${data.handle}`
+      const email = data.email?.trim().toLowerCase()
+      const isOwner = email === OWNER_EMAIL
 
-    if (profileErr) {
-      setAuthError('Erro ao salvar perfil: ' + profileErr.message)
+      const profileData = {
+        id: userId,
+        email: data.email,
+        display_name: data.displayName,
+        handle: handle,
+        avatar: data.avatar || '🎮',
+        avatar_type: data.avatarType || 'emoji',
+        niches: data.niches || [],
+        bio: '',
+        social_links: { instagram: '', x: '', youtube: '', linkedin: '' },
+        verified: isOwner ? 'stonks' : null,
+        verified_secondary: isOwner ? 'blue' : null,
+        account_type: isOwner ? 'owner' : 'personal',
+      }
+
+      // Use upsert to handle both cases: trigger created row OR trigger failed
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .upsert(profileData, { onConflict: 'id' })
+
+      if (profileErr) {
+        // Fallback: try update if upsert fails (RLS might block insert)
+        const { id: _id, email: _email, ...updateFields } = profileData
+        const { error: updateErr } = await supabase
+          .from('profiles')
+          .update(updateFields)
+          .eq('id', userId)
+        if (updateErr) {
+          setAuthError('Erro ao salvar perfil: ' + translateAuthError(updateErr.message))
+          return false
+        }
+      }
+
+      // Build full user object for local state
+      const fullProfile = {
+        ...profileData,
+        creator_score: 0,
+        followers: 0,
+        following: 0,
+        memes_posted: 0,
+        total_bancadas: 0,
+        total_views: 0,
+        privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
+        screen_time: { totalMinutes: 0, sessions: [] },
+        owned_items: [],
+        equipped_items: { hat: null, glasses: null, effect: null, frame: null },
+        created_at: new Date().toISOString(),
+      }
+
+      setUser(dbToUser(fullProfile))
+      return true
+    } catch (err) {
+      console.error('Register error:', err)
+      setAuthError('Erro de conexao. Verifique sua internet e tente novamente.')
       return false
     }
-
-    // Build full user object for local state
-    const fullProfile = {
-      id: userId,
-      email: data.email,
-      ...profileUpdate,
-      creator_score: 0,
-      followers: 0,
-      following: 0,
-      memes_posted: 0,
-      total_bancadas: 0,
-      total_views: 0,
-      privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
-      screen_time: { totalMinutes: 0, sessions: [] },
-      owned_items: [],
-      equipped_items: { hat: null, glasses: null, effect: null, frame: null },
-      created_at: new Date().toISOString(),
-    }
-
-    setUser(dbToUser(fullProfile))
-    return true
   }, [])
 
   // Login with email/password
   const login = useCallback(async (email, password) => {
     setAuthError(null)
-    const { data: authData, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) {
-      setAuthError(error.message)
+    try {
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) {
+        setAuthError(translateAuthError(error.message))
+        return false
+      }
+
+      // Ensure profile exists (trigger might have failed)
+      const profile = await ensureProfile(authData.user.id, authData.user.email)
+      if (profile) {
+        setUser(dbToUser(profile))
+      }
+      return true
+    } catch (err) {
+      console.error('Login error:', err)
+      setAuthError('Erro de conexao. Verifique sua internet e tente novamente.')
       return false
     }
+  }, [ensureProfile])
 
-    const profile = await fetchProfile(authData.user.id)
-    if (profile && profile.handle) {
-      setUser(dbToUser(profile))
+  // Reset password
+  const resetPassword = useCallback(async (email) => {
+    setAuthError(null)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      if (error) {
+        setAuthError(translateAuthError(error.message))
+        return false
+      }
+      return true
+    } catch (err) {
+      setAuthError('Erro ao enviar email. Tente novamente.')
+      return false
     }
-    return true
-  }, [fetchProfile])
+  }, [])
 
   // Logout
   const logout = useCallback(async () => {
@@ -431,6 +517,7 @@ export function UserProvider({ children }) {
       register,
       login,
       logout,
+      resetPassword,
       updateProfile,
       updateNiches,
       addCreatorScore,

@@ -242,9 +242,12 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
 }
 
 export default function OnboardingPage() {
-  const { register, login, authError } = useUser()
+  const { register, login, resetPassword, authError, user, session } = useUser()
   const { t } = useLang()
-  const [mode, setMode] = useState('welcome') // 'welcome', 'login', 'register'
+  // If user has session but no handle, go straight to register to complete profile
+  const [mode, setMode] = useState(() => {
+    return (session && user && !user.handle) ? 'register' : 'welcome'
+  })
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -256,6 +259,7 @@ export default function OnboardingPage() {
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [selectedNiches, setSelectedNiches] = useState([])
   const [submitting, setSubmitting] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const toggleNiche = (niche) => {
     setSelectedNiches(prev =>
@@ -336,6 +340,11 @@ export default function OnboardingPage() {
               {authError && (
                 <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
               )}
+              {resetSent && (
+                <div className="bg-green/15 border border-green/30 rounded-xl px-4 py-2.5 text-green text-xs">
+                  Email de recuperacao enviado! Verifique sua caixa de entrada.
+                </div>
+              )}
               <div>
                 <label className="text-text-secondary text-xs font-medium block mb-1.5">Email</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
@@ -344,13 +353,24 @@ export default function OnboardingPage() {
               <div>
                 <label className="text-text-secondary text-xs font-medium block mb-1.5">Senha</label>
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Sua senha"
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
               </div>
               <button onClick={handleLogin} disabled={submitting || !email.includes('@') || password.length < 4}
                 className="w-full bg-accent hover:bg-accent-light disabled:opacity-30 text-white py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all disabled:cursor-not-allowed">
                 {submitting ? 'Entrando...' : 'Entrar'}
               </button>
-              <button onClick={() => { setMode('welcome'); setPassword(''); setEmail('') }}
+              {email.includes('@') && (
+                <button onClick={async () => {
+                  setResetSent(false)
+                  const ok = await resetPassword(email)
+                  if (ok) setResetSent(true)
+                }}
+                  className="w-full text-accent hover:text-accent-light text-xs py-1 cursor-pointer transition-colors">
+                  Esqueci minha senha
+                </button>
+              )}
+              <button onClick={() => { setMode('welcome'); setPassword(''); setEmail(''); setResetSent(false) }}
                 className="w-full text-text-muted hover:text-text-secondary text-xs py-2 cursor-pointer transition-colors">
                 Voltar
               </button>
