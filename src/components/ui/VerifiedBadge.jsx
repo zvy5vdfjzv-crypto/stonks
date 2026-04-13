@@ -1,91 +1,147 @@
 import { motion } from 'framer-motion'
 import { VERIFICATION_TYPES } from '../../context/UserContext'
 
-export default function VerifiedBadge({ type, size = 16 }) {
+export default function VerifiedBadge({ type, secondary, size = 16 }) {
   if (!type) return null
   const info = VERIFICATION_TYPES[type]
   if (!info) return null
 
-  const s = size
-  const inner = s * 0.45
+  return (
+    <span className="inline-flex items-center shrink-0 ml-0.5 gap-0.5">
+      <Badge type={type} size={size} />
+      {secondary && <Badge type={secondary} size={Math.round(size * 0.85)} />}
+    </span>
+  )
+}
 
-  // Gradient pairs for each type
-  const gradients = {
-    blue: { from: '#4A9EFF', to: '#0066FF', glow: '#4A9EFF', shine: '#89C4FF' },
-    yellow: { from: '#FFD700', to: '#FF9500', glow: '#FFD700', shine: '#FFF4B8' },
-    black: { from: '#555555', to: '#111111', glow: '#888888', shine: '#CCCCCC' },
-    stonks: { from: '#9B6DFF', to: '#6C3CE7', glow: '#9B6DFF', shine: '#D4BFFF' },
-  }
+function Badge({ type, size }) {
+  if (type === 'stonks') return <StonksBadge size={size} />
+  if (type === 'blue') return <BlueBadge size={size} />
+  if (type === 'yellow') return <GoldBadge size={size} />
+  if (type === 'black') return <BlackBadge size={size} />
+  return null
+}
 
-  const g = gradients[type] || gradients.blue
-  const uid = `vb-${type}-${Math.random().toString(36).slice(2, 6)}`
-
+// STONKS owner badge - animated star with rotating glow
+function StonksBadge({ size }) {
   return (
     <motion.span
-      className="inline-flex items-center justify-center shrink-0 ml-0.5 relative"
-      style={{ width: s, height: s }}
-      title={info.label}
-      initial={false}
-      whileHover={{ scale: 1.2 }}
+      className="inline-flex items-center justify-center shrink-0 relative"
+      style={{ width: size, height: size }}
+      title="STONKS Official"
+      whileHover={{ scale: 1.3, rotate: 15 }}
     >
-      <svg width={s} height={s} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <defs>
-          {/* Main gradient */}
-          <linearGradient id={`${uid}-grad`} x1="0" y1="0" x2="24" y2="24">
-            <stop offset="0%" stopColor={g.from} />
-            <stop offset="100%" stopColor={g.to} />
+          <linearGradient id="sg1" x1="0" y1="0" x2="24" y2="24">
+            <stop offset="0%" stopColor="#C084FC" />
+            <stop offset="50%" stopColor="#7C3AED" />
+            <stop offset="100%" stopColor="#4C1D95" />
           </linearGradient>
-          {/* Shine sweep */}
-          <linearGradient id={`${uid}-shine`} x1="0" y1="0" x2="24" y2="24">
-            <stop offset="0%" stopColor={g.shine} stopOpacity="0" />
-            <stop offset="40%" stopColor={g.shine} stopOpacity="0.6" />
-            <stop offset="60%" stopColor={g.shine} stopOpacity="0" />
+          <linearGradient id="sg2" x1="20" y1="0" x2="4" y2="20">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.5" />
+            <stop offset="60%" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
-          {/* Glow filter */}
-          <filter id={`${uid}-glow`}>
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          <filter id="sg">
+            <feGaussianBlur stdDeviation="1.5" result="b" />
+            <feComposite in="SourceGraphic" in2="b" operator="over" />
           </filter>
         </defs>
-
-        {/* Outer glow */}
-        <circle cx="12" cy="12" r="10" fill={g.glow} opacity="0.15" filter={`url(#${uid}-glow)`} />
-
-        {/* Badge shape - hexagonal star */}
-        <path
-          d="M12 1.5L14.5 7.2L20.7 8L16.35 12.2L17.4 18.4L12 15.6L6.6 18.4L7.65 12.2L3.3 8L9.5 7.2L12 1.5Z"
-          fill={`url(#${uid}-grad)`}
-          stroke={g.from}
-          strokeWidth="0.3"
-        />
-
+        {/* Outer glow ring */}
+        <circle cx="12" cy="12" r="11.5" stroke="#C084FC" strokeWidth="0.5" fill="none" opacity="0.4" />
+        {/* Star shape */}
+        <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8" fill="url(#sg1)" filter="url(#sg)" />
         {/* Shine overlay */}
-        <path
-          d="M12 1.5L14.5 7.2L20.7 8L16.35 12.2L17.4 18.4L12 15.6L6.6 18.4L7.65 12.2L3.3 8L9.5 7.2L12 1.5Z"
-          fill={`url(#${uid}-shine)`}
-        />
-
-        {/* Inner shape */}
-        <circle cx="12" cy="10.5" r="4" fill={g.to} opacity="0.3" />
-
-        {/* Check mark or star */}
-        {type === 'stonks' ? (
-          <text x="12" y="12.5" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" dominantBaseline="central">★</text>
-        ) : (
-          <path d="M8.5 10.5L11 13L15.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        )}
+        <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8" fill="url(#sg2)" />
+        {/* S letter */}
+        <text x="12" y="12.5" textAnchor="middle" fontSize="9" fill="white" fontWeight="900" dominantBaseline="central" fontFamily="system-ui">S</text>
       </svg>
-
-      {/* Animated shimmer */}
+      {/* Rotating conic gradient */}
       <motion.span
-        className="absolute inset-0 rounded-full pointer-events-none"
-        style={{ background: `radial-gradient(circle at 30% 30%, ${g.shine}40, transparent 60%)` }}
-        animate={{ opacity: [0.3, 0.7, 0.3] }}
-        transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+        className="absolute inset-[-2px] pointer-events-none rounded-full"
+        style={{ background: 'conic-gradient(from 0deg, transparent, #C084FC30, transparent, #7C3AED30, transparent)', mixBlendMode: 'screen' }}
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
       />
+    </motion.span>
+  )
+}
+
+// Blue verified - crisp gradient circle
+function BlueBadge({ size }) {
+  return (
+    <motion.span
+      className="inline-flex items-center justify-center shrink-0"
+      style={{ width: size, height: size }}
+      title="Verificado"
+      whileHover={{ scale: 1.15 }}
+    >
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="bg1" x1="2" y1="2" x2="22" y2="22">
+            <stop offset="0%" stopColor="#60A5FA" />
+            <stop offset="100%" stopColor="#1D4ED8" />
+          </linearGradient>
+        </defs>
+        <circle cx="12" cy="12" r="11" fill="url(#bg1)" />
+        {/* Highlight */}
+        <ellipse cx="9" cy="8" rx="5" ry="4" fill="white" opacity="0.12" />
+        {/* Check */}
+        <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.span>
+  )
+}
+
+// Gold business - metallic star
+function GoldBadge({ size }) {
+  return (
+    <motion.span
+      className="inline-flex items-center justify-center shrink-0"
+      style={{ width: size, height: size }}
+      title="Empresa Verificada"
+      whileHover={{ scale: 1.15 }}
+    >
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="gg1" x1="0" y1="0" x2="24" y2="24">
+            <stop offset="0%" stopColor="#FDE68A" />
+            <stop offset="40%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#92400E" />
+          </linearGradient>
+          <linearGradient id="gg2" x1="0" y1="0" x2="20" y2="20">
+            <stop offset="0%" stopColor="#FEF3C7" stopOpacity="0.5" />
+            <stop offset="60%" stopColor="#FEF3C7" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points="12,1.5 15,8 22,8.5 17,13 18.5,20.5 12,16.5 5.5,20.5 7,13 2,8.5 9,8" fill="url(#gg1)" />
+        <polygon points="12,1.5 15,8 22,8.5 17,13 18.5,20.5 12,16.5 5.5,20.5 7,13 2,8.5 9,8" fill="url(#gg2)" />
+        <path d="M7.5 11.5L10.5 14.5L16.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.span>
+  )
+}
+
+// Black political - dark premium circle
+function BlackBadge({ size }) {
+  return (
+    <motion.span
+      className="inline-flex items-center justify-center shrink-0"
+      style={{ width: size, height: size }}
+      title="Figura Publica"
+      whileHover={{ scale: 1.15 }}
+    >
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="bkg1" x1="2" y1="2" x2="22" y2="22">
+            <stop offset="0%" stopColor="#525252" />
+            <stop offset="100%" stopColor="#0a0a0a" />
+          </linearGradient>
+        </defs>
+        <circle cx="12" cy="12" r="11" fill="url(#bkg1)" stroke="#404040" strokeWidth="0.8" />
+        <ellipse cx="9" cy="8" rx="5" ry="4" fill="white" opacity="0.08" />
+        <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </motion.span>
   )
 }

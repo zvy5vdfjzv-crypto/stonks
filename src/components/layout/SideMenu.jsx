@@ -68,7 +68,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
                 <div>
                   <div className="flex items-center">
                     <span className="font-semibold text-text-primary text-sm">{user.displayName}</span>
-                    <VerifiedBadge type={user.verified} size={16} />
+                    <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={16} />
                   </div>
                   <p className="text-accent text-xs">{user.handle}</p>
                   <div className="flex items-center gap-1 mt-0.5">

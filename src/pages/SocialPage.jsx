@@ -171,7 +171,7 @@ function PostCard({ post, onLike, onRepost, onBoost }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`font-semibold text-sm flex items-center ${post.isUserPost ? 'text-accent' : 'text-text-primary'}`}>
               {post.userId}
-              {post.isUserPost && <VerifiedBadge type={user?.verified} size={13} />}
+              {post.isUserPost && <VerifiedBadge type={user?.verified} secondary={user?.verifiedSecondary} size={13} />}
             </span>
             {post.sentiment && (
               <Badge color={post.sentiment === 'bull' ? 'green' : 'red'}>

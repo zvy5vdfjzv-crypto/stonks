@@ -41,18 +41,11 @@ export const SHOP_ITEMS = [
 ]
 
 export const VERIFICATION_TYPES = {
-  blue: { label: 'Verificado', emoji: '✓', color: '#54A0FF', bg: 'bg-blue', desc: 'Conta pessoal verificada' },
-  yellow: { label: 'Empresa', emoji: '✓', color: '#FECA57', bg: 'bg-yellow', desc: 'Conta empresarial verificada' },
-  black: { label: 'Politico', emoji: '✓', color: '#1a1a1a', bg: 'bg-black border border-white/30', desc: 'Figura publica/politica' },
-  stonks: { label: 'STONKS', emoji: '★', color: '#6C5CE7', bg: 'bg-accent', desc: 'Conta oficial STONKS' },
+  blue: { label: 'Verificado', color: '#2563EB', price: 10, needsApproval: false, desc: 'Conta pessoal verificada', features: ['Selo verificado', 'Prioridade no feed', 'Credibilidade'] },
+  yellow: { label: 'Empresa', color: '#F59E0B', price: 30, needsApproval: true, desc: 'Conta empresarial verificada', features: ['Selo empresarial', 'Prioridade maxima', 'Insights avancados', 'Suporte prioritario'] },
+  black: { label: 'Politico', color: '#1a1a1a', price: 30, needsApproval: true, desc: 'Figura publica/politica', features: ['Selo politico', 'Prioridade maxima', 'Protecao de identidade', 'Suporte dedicado'] },
+  stonks: { label: 'STONKS', color: '#7C3AED', price: null, needsApproval: false, desc: 'Administrador da plataforma', features: ['Selo exclusivo STONKS', 'Acesso total', 'Controle da plataforma'] },
 }
-
-export const VERIFICATION_PLANS = [
-  { id: 'basic', name: 'Basico', priceMonthly: 10, priceSemiannual: 50, priceAnnual: 90, features: ['Selo verificado', 'Prioridade no feed'] },
-  { id: 'pro', name: 'Pro', priceMonthly: 20, priceSemiannual: 100, priceAnnual: 180, features: ['Selo verificado', 'Prioridade no feed', 'Insights avancados', 'Boost gratis/mes'] },
-  { id: 'premium', name: 'Premium', priceMonthly: 30, priceSemiannual: 150, priceAnnual: 270, features: ['Selo verificado', 'Prioridade maxima', 'Insights avancados', '3 Boosts gratis/mes', 'Suporte prioritario'] },
-  { id: 'elite', name: 'Elite', priceMonthly: 50, priceSemiannual: 250, priceAnnual: 450, features: ['Selo verificado', 'Prioridade maxima', 'Insights ilimitados', 'Boosts ilimitados', 'Suporte VIP', 'Badge exclusivo'] },
-]
 
 export const STONKS_OFFICIAL_ACCOUNTS = [
   { id: 'stonks-main', handle: '@stonks', name: 'STONKS', emoji: '📈', verified: 'stonks', category: 'viral', followers: '1.2M', desc: 'Conta oficial da plataforma' },
@@ -106,9 +99,10 @@ export function UserProvider({ children }) {
       totalViews: 0,
       bio: '',
       socialLinks: { instagram: '', x: '', youtube: '', linkedin: '' },
-      verified: null, // null | 'blue' | 'yellow' | 'black' | 'stonks'
-      verifiedPlan: null, // null | { tier, billing, expiresAt }
-      accountType: 'personal', // personal | business | political | owner
+      verified: data.email === 'pedronhobrab@gmail.com' ? 'stonks' : null,
+      verifiedSecondary: data.email === 'pedronhobrab@gmail.com' ? 'blue' : null,
+      verifiedPlan: null,
+      accountType: data.email === 'pedronhobrab@gmail.com' ? 'owner' : 'personal',
       privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
       screenTime: { totalMinutes: 0, sessions: [] },
       ownedItems: [],
