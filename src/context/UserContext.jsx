@@ -167,11 +167,19 @@ export function UserProvider({ children }) {
   }, [setUser])
 
   const updatePrivacy = useCallback((key, value) => {
-    setUser(prev => prev ? { ...prev, privacy: { ...prev.privacy, [key]: value } } : prev)
+    setUser(prev => {
+      if (!prev) return prev
+      const p = prev.privacy || { privateAccount: false, showActivity: 'followers', allowMentions: true }
+      return { ...prev, privacy: { ...p, [key]: value } }
+    })
   }, [setUser])
 
   const addScreenTime = useCallback((minutes) => {
-    setUser(prev => prev ? { ...prev, screenTime: { ...prev.screenTime, totalMinutes: prev.screenTime.totalMinutes + minutes } } : prev)
+    setUser(prev => {
+      if (!prev) return prev
+      const st = prev.screenTime || { totalMinutes: 0, sessions: [] }
+      return { ...prev, screenTime: { ...st, totalMinutes: (st.totalMinutes || 0) + minutes } }
+    })
   }, [setUser])
 
   const isRegistered = !!user
