@@ -22,7 +22,7 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
 
   return (
   <>
-    <header className="sticky top-0 z-30 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5">
+    <header className="sticky top-0 z-30 bg-[var(--bg-app)]/90 backdrop-blur-xl border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5">
       <div className="max-w-5xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2">
           {onOpenMenu && (

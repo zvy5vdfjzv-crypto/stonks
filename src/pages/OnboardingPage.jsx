@@ -280,7 +280,7 @@ export default function OnboardingPage() {
   const canNextStep1 = displayName.trim().length >= 2 && handle.trim().length >= 2 && email.includes('@')
 
   return (
-    <div className="min-h-dvh bg-[#0a0a0c] flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-[var(--bg-app)] flex items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -445,7 +445,7 @@ export default function OnboardingPage() {
                 })}
               </div>
 
-              <div className="sticky bottom-0 bg-[#0a0a0c] pt-3 pb-2 space-y-2">
+              <div className="sticky bottom-0 bg-[var(--bg-app)] pt-3 pb-2 space-y-2">
                 <p className="text-text-muted text-xs text-center">
                   {selectedNiches.length}/5 selecionados {selectedNiches.length < 2 ? '(minimo 2)' : ''}
                 </p>

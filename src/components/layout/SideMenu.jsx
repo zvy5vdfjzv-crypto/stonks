@@ -15,19 +15,14 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
     return localStorage.getItem('stonks_fontsize') || 'M'
   })
 
-  // Apply theme
+  // Apply theme via html class
   useEffect(() => {
-    const root = document.documentElement
     if (darkMode) {
-      root.style.setProperty('--bg-override', '')
-      document.body.style.background = '#0a0a0c'
-      document.body.style.color = '#F0F0F5'
-      localStorage.setItem('stonks_theme', 'dark')
+      document.documentElement.classList.remove('light')
     } else {
-      document.body.style.background = '#F5F5F7'
-      document.body.style.color = '#1a1a1a'
-      localStorage.setItem('stonks_theme', 'light')
+      document.documentElement.classList.add('light')
     }
+    localStorage.setItem('stonks_theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
 
   // Apply font size

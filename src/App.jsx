@@ -54,7 +54,7 @@ function MainApp() {
         <ChatProvider>
         <NotificationProvider>
         <BrowserRouter>
-          <div className="flex flex-col min-h-dvh bg-[#0a0a0c]">
+          <div className="flex flex-col min-h-dvh bg-[var(--bg-app)]">
             <Header onCreateMeme={() => setCreateOpen(true)} onOpenMenu={() => setMenuOpen(true)} />
             <NewsTicker />
             <main className="flex-1 pb-16">

@@ -45,7 +45,7 @@ export default function MarketPage() {
   return (
     <div className="pb-16">
       {/* Tabs - sticky */}
-      <div className="sticky top-[41px] sm:top-[45px] z-10 flex items-center justify-center gap-1 px-3 py-1.5 bg-[#0a0a0c]/95 backdrop-blur-xl border-b border-border/30">
+      <div className="sticky top-[41px] sm:top-[45px] z-10 flex items-center justify-center gap-1 px-3 py-1.5 bg-[var(--bg-app)]/95 backdrop-blur-xl border-b border-border/30">
         {TABS.map(tab => (
           <button
             key={tab.id}

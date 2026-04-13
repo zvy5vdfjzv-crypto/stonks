@@ -166,7 +166,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Tab bar - Instagram style */}
-      <div className="flex border-b border-border sticky top-[52px] bg-[#0a0a0c] z-10">
+      <div className="flex border-b border-border sticky top-[52px] bg-[var(--bg-app)] z-10">
         {[
           { id: 'posts', icon: Grid3X3, label: 'Posts' },
           { id: 'stats', icon: BarChart2, label: 'Stats' },

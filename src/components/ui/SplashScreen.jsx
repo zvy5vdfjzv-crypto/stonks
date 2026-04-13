@@ -9,7 +9,7 @@ export default function SplashScreen({ onDone }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
       onAnimationComplete={onDone}
-      className="fixed inset-0 z-50 bg-[#0a0a0c] flex flex-col items-center justify-center"
+      className="fixed inset-0 z-50 bg-[var(--bg-app)] flex flex-col items-center justify-center"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-green/5" />
 
