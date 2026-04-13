@@ -1,28 +1,41 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Shield, Settings, Eye, Clock, Moon, Sun, Type, ChevronRight, Lock, Users, AtSign, BarChart2 } from 'lucide-react'
-import { useUser, VERIFICATION_TYPES } from '../../context/UserContext'
+import { useUser } from '../../context/UserContext'
 import UserAvatar from '../ui/UserAvatar'
-
-function VerifiedBadge({ type, size = 14 }) {
-  if (!type) return null
-  const info = VERIFICATION_TYPES[type]
-  if (!info) return null
-  return (
-    <span className={`inline-flex items-center justify-center w-[${size}px] h-[${size}px] rounded-full ${info.bg} text-white text-[8px] font-bold ml-1`}
-      style={{ width: size, height: size, fontSize: size * 0.6, backgroundColor: info.color }}>
-      {info.emoji}
-    </span>
-  )
-}
-
-export { VerifiedBadge }
+import VerifiedBadge from '../ui/VerifiedBadge'
 
 export default function SideMenu({ isOpen, onClose, onNavigate }) {
   const { user, creatorTitle, updatePrivacy, addScreenTime } = useUser()
   const [activeSection, setActiveSection] = useState(null)
-  const [darkMode, setDarkMode] = useState(true)
-  const [fontSize, setFontSize] = useState('M')
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('stonks_theme') !== 'light'
+  })
+  const [fontSize, setFontSize] = useState(() => {
+    return localStorage.getItem('stonks_fontsize') || 'M'
+  })
+
+  // Apply theme
+  useEffect(() => {
+    const root = document.documentElement
+    if (darkMode) {
+      root.style.setProperty('--bg-override', '')
+      document.body.style.background = '#0a0a0c'
+      document.body.style.color = '#F0F0F5'
+      localStorage.setItem('stonks_theme', 'dark')
+    } else {
+      document.body.style.background = '#F5F5F7'
+      document.body.style.color = '#1a1a1a'
+      localStorage.setItem('stonks_theme', 'light')
+    }
+  }, [darkMode])
+
+  // Apply font size
+  useEffect(() => {
+    const sizes = { P: '14px', M: '16px', G: '18px' }
+    document.documentElement.style.fontSize = sizes[fontSize] || '16px'
+    localStorage.setItem('stonks_fontsize', fontSize)
+  }, [fontSize])
 
   // Track screen time
   useEffect(() => {
@@ -33,8 +46,8 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
   if (!user) return null
 
   const sections = [
-    { id: 'verification', icon: Shield, label: 'Verificacao', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
-    { id: 'settings', icon: Settings, label: 'Configuracoes' },
+    { id: 'verification', icon: Shield, label: 'Verificação', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
+    { id: 'settings', icon: Settings, label: 'Configurações' },
     { id: 'privacy', icon: Lock, label: 'Privacidade' },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
     { id: 'screentime', icon: Clock, label: 'Tempo de uso' },
@@ -103,7 +116,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
                   <motion.div key="settings" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
                     <button onClick={() => setActiveSection(null)}
                       className="flex items-center gap-2 px-4 py-3 text-accent text-sm font-medium cursor-pointer w-full hover:bg-surface-hover">
-                      ← Configuracoes
+                      ← Configurações
                     </button>
                     <div className="px-4 py-2 space-y-4">
                       {/* Dark/Light mode */}
@@ -171,7 +184,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
                       {/* Allow mentions */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-text-primary text-sm">Permitir marcacoes</p>
+                          <p className="text-text-primary text-sm">Permitir marcações</p>
                           <p className="text-text-muted text-[10px]">Outros podem te marcar em posts</p>
                         </div>
                         <button onClick={() => updatePrivacy('allowMentions', !user.privacy.allowMentions)}
