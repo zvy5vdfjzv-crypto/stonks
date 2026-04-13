@@ -247,9 +247,7 @@ export function UserProvider({ children }) {
     const email = data.email?.trim().toLowerCase()
     const isOwner = email === OWNER_EMAIL
 
-    const profileData = {
-      id: userId,
-      email: data.email,
+    const profileUpdate = {
       display_name: data.displayName,
       handle: handle,
       avatar: data.avatar || '🎮',
@@ -260,6 +258,24 @@ export function UserProvider({ children }) {
       verified: isOwner ? 'stonks' : null,
       verified_secondary: isOwner ? 'blue' : null,
       account_type: isOwner ? 'owner' : 'personal',
+    }
+
+    // Trigger already created the profile row, so just update it
+    const { error: profileErr } = await supabase
+      .from('profiles')
+      .update(profileUpdate)
+      .eq('id', userId)
+
+    if (profileErr) {
+      setAuthError('Erro ao salvar perfil: ' + profileErr.message)
+      return false
+    }
+
+    // Build full user object for local state
+    const fullProfile = {
+      id: userId,
+      email: data.email,
+      ...profileUpdate,
       creator_score: 0,
       followers: 0,
       following: 0,
@@ -270,18 +286,10 @@ export function UserProvider({ children }) {
       screen_time: { totalMinutes: 0, sessions: [] },
       owned_items: [],
       equipped_items: { hat: null, glasses: null, effect: null, frame: null },
+      created_at: new Date().toISOString(),
     }
 
-    const { error: profileErr } = await supabase
-      .from('profiles')
-      .upsert(profileData, { onConflict: 'id' })
-
-    if (profileErr) {
-      setAuthError('Erro ao salvar perfil: ' + profileErr.message)
-      return false
-    }
-
-    setUser(dbToUser(profileData))
+    setUser(dbToUser(fullProfile))
     return true
   }, [])
 
