@@ -81,15 +81,18 @@ export function getCreatorTitle(score) {
 export function UserProvider({ children }) {
   const [rawUser, setRawUser] = useLocalStorage('stonks_user', null)
 
+  const ownerEmail = 'pedronhobrab@gmail.com'
+
   // Migrate old users - fill missing fields
+  const isOwner = !!(rawUser?.email && rawUser.email.trim().toLowerCase() === ownerEmail)
   const user = rawUser ? {
     ...rawUser,
     bio: rawUser.bio ?? '',
     socialLinks: rawUser.socialLinks ?? { instagram: '', x: '', youtube: '', linkedin: '' },
-    verified: (rawUser.email === 'pedronhobrab@gmail.com') ? 'stonks' : (rawUser.verified || null),
-    verifiedSecondary: (rawUser.email === 'pedronhobrab@gmail.com') ? 'blue' : (rawUser.verifiedSecondary || null),
+    verified: isOwner ? 'stonks' : (rawUser.verified || null),
+    verifiedSecondary: isOwner ? 'blue' : (rawUser.verifiedSecondary || null),
     verifiedPlan: rawUser.verifiedPlan ?? null,
-    accountType: rawUser.email === 'pedronhobrab@gmail.com' ? 'owner' : (rawUser.accountType ?? 'personal'),
+    accountType: isOwner ? 'owner' : (rawUser.accountType ?? 'personal'),
     privacy: rawUser.privacy ?? { privateAccount: false, showActivity: 'followers', allowMentions: true },
     screenTime: rawUser.screenTime ?? { totalMinutes: 0, sessions: [] },
     ownedItems: rawUser.ownedItems ?? [],
@@ -116,10 +119,10 @@ export function UserProvider({ children }) {
       totalViews: 0,
       bio: '',
       socialLinks: { instagram: '', x: '', youtube: '', linkedin: '' },
-      verified: data.email === 'pedronhobrab@gmail.com' ? 'stonks' : null,
-      verifiedSecondary: data.email === 'pedronhobrab@gmail.com' ? 'blue' : null,
+      verified: data.email?.trim().toLowerCase() === ownerEmail ? 'stonks' : null,
+      verifiedSecondary: data.email?.trim().toLowerCase() === ownerEmail ? 'blue' : null,
       verifiedPlan: null,
-      accountType: data.email === 'pedronhobrab@gmail.com' ? 'owner' : 'personal',
+      accountType: data.email?.trim().toLowerCase() === ownerEmail ? 'owner' : 'personal',
       privacy: { privateAccount: false, showActivity: 'followers', allowMentions: true },
       screenTime: { totalMinutes: 0, sessions: [] },
       ownedItems: [],
