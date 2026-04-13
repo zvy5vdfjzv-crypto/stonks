@@ -30,6 +30,14 @@ import ChatPage from './pages/ChatPage'
 import ShopPage from './pages/ShopPage'
 import VerificationPage from './pages/VerificationPage'
 
+// Reset page - access /reset to clear account and re-register
+function ResetPage() {
+  localStorage.removeItem('stonks_user')
+  localStorage.removeItem('stonks_notif_muted')
+  window.location.href = '/'
+  return null
+}
+
 function SideMenuWithNav({ isOpen, onClose }) {
   const navigate = useNavigate()
   return <SideMenu isOpen={isOpen} onClose={onClose} onNavigate={(path) => navigate(path)} />
@@ -60,6 +68,7 @@ function MainApp() {
                 <Route path="/creator-rank" element={<CreatorRankPage />} />
                 <Route path="/shop" element={<ShopPage />} />
                 <Route path="/verification" element={<VerificationPage />} />
+                <Route path="/reset" element={<ResetPage />} />
                 <Route path="/chat" element={<ChatPage />} />
               </Routes>
             </main>
@@ -94,6 +103,15 @@ function MainApp() {
 function AppGate() {
   const { isRegistered } = useUser()
   const [showSplash, setShowSplash] = useState(true)
+
+  // Allow /reset even when logged in
+  if (window.location.pathname === '/reset') {
+    localStorage.removeItem('stonks_user')
+    localStorage.removeItem('stonks_notif_muted')
+    localStorage.removeItem('stonks_theme')
+    window.location.href = '/'
+    return null
+  }
 
   if (showSplash) {
     return <SplashScreen onDone={() => setShowSplash(false)} />
