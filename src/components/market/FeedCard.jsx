@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, Info, MoreHorizontal } from 'lucide-react'
+import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarChart2, MoreHorizontal, Send } from 'lucide-react'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -12,6 +12,12 @@ export default function FeedCard({ trend, onOpenStats }) {
   const [saved, setSaved] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [showBancou, setShowBancou] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [comments, setComments] = useState([
+    { id: 1, user: 'CryptoMemeLord', avatar: '😎', text: 'Bancando pesado nessa! 🚀', time: '2m' },
+    { id: 2, user: 'MemeQueen_BR', avatar: '👑', text: 'Esse meme vai explodir essa semana', time: '5m' },
+  ])
   const [sent, setSent] = useState(null)
   const { friends, communities, sendMessage } = useChat()
   const isPositive = trend.change24h >= 0
@@ -142,14 +148,20 @@ export default function FeedCard({ trend, onOpenStats }) {
               </div>
             </motion.button>
 
-            {/* Comment / Stats */}
-            <button onClick={() => onOpenStats?.(trend)} className="text-text-secondary hover:text-text-primary cursor-pointer">
-              <MessageCircle size={22} />
+            {/* Comments */}
+            <button onClick={() => setShowComments(!showComments)} className="text-text-secondary hover:text-text-primary cursor-pointer flex items-center gap-1">
+              <MessageCircle size={20} />
+              {comments.length > 0 && <span className="text-[10px] font-semibold">{comments.length}</span>}
             </button>
 
             {/* Share */}
             <button onClick={() => setShowShare(!showShare)} className="text-text-secondary hover:text-text-primary cursor-pointer">
               <Share2 size={20} />
+            </button>
+
+            {/* Stats */}
+            <button onClick={() => onOpenStats?.(trend)} className="text-text-secondary hover:text-text-primary cursor-pointer">
+              <BarChart2 size={20} />
             </button>
           </div>
 
@@ -204,6 +216,48 @@ export default function FeedCard({ trend, onOpenStats }) {
                 <button onClick={handleNativeShare}
                   className="flex-1 bg-surface-hover border border-border rounded-lg py-1.5 text-[10px] text-text-secondary font-medium cursor-pointer hover:text-text-primary transition-colors">
                   📤 Mais opcoes
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Comments section */}
+        <AnimatePresence>
+          {showComments && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-2">
+              <div className="max-h-[200px] overflow-y-auto space-y-2 mb-2">
+                {comments.map(c => (
+                  <div key={c.id} className="flex items-start gap-2">
+                    <span className="text-sm shrink-0">{c.avatar}</span>
+                    <div>
+                      <p className="text-text-primary text-xs">
+                        <span className="font-semibold">{c.user}</span>{' '}
+                        <span className="text-text-secondary">{c.text}</span>
+                      </p>
+                      <span className="text-text-muted text-[9px]">{c.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && commentText.trim()) {
+                      setComments(prev => [...prev, { id: Date.now(), user: 'Voce', avatar: '🎮', text: commentText.trim(), time: 'agora' }])
+                      setCommentText('')
+                    }
+                  }}
+                  placeholder="Adicionar comentario..."
+                  className="flex-1 bg-surface-hover border border-border rounded-lg px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+                <button onClick={() => {
+                    if (!commentText.trim()) return
+                    setComments(prev => [...prev, { id: Date.now(), user: 'Voce', avatar: '🎮', text: commentText.trim(), time: 'agora' }])
+                    setCommentText('')
+                  }}
+                  disabled={!commentText.trim()}
+                  className="bg-accent disabled:opacity-30 text-white w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer shrink-0">
+                  <Send size={12} />
                 </button>
               </div>
             </motion.div>
