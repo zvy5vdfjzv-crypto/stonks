@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, ArrowRight, Check, Sparkles, Camera, Shuffle, User, ImagePlus } from 'lucide-react'
+import { Zap, ArrowRight, Check, Sparkles, Camera, Shuffle, User, ImagePlus } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useLang } from '../context/LanguageContext'
 import { CATEGORIES } from '../data/trends'
@@ -298,7 +298,7 @@ export default function OnboardingPage() {
               {/* Logo */}
               <div className="text-center mb-6">
                 <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="text-accent" size={32} />
+                  <Zap className="text-accent" size={32} fill="currentColor" />
                 </div>
                 <h1 className="text-3xl font-bold text-text-primary">
                   STON<span className="text-accent">KS</span>

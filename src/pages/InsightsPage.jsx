@@ -95,7 +95,7 @@ export default function InsightsPage() {
             <div className="flex items-center gap-2 mb-1">
               <h1 className="font-bold text-text-primary text-lg">{user.displayName}</h1>
               <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={20} />
-              <span className="text-sm">{creatorTitle.badge}</span>
+              {user.accountType !== 'owner' && <span className="text-sm">{creatorTitle.badge}</span>}
             </div>
             <div className="flex items-center gap-1.5">
               <p className="text-accent text-sm">{user.handle}</p>
@@ -144,8 +144,8 @@ export default function InsightsPage() {
           </div>
         )}
 
-        {/* Creator title progress */}
-        <div className="mt-4 bg-surface border border-border rounded-xl p-3">
+        {/* Creator title progress - hidden for owner */}
+        {user.accountType !== 'owner' && <div className="mt-4 bg-surface border border-border rounded-xl p-3">
           <div className="flex items-center justify-between mb-1.5">
             <span className={`text-xs font-semibold ${creatorTitle.color}`}>{creatorTitle.badge} {creatorTitle.title}</span>
             {nextTitle && <span className="text-text-muted text-[10px]">{nextTitle.badge} {nextTitle.title}</span>}
@@ -155,7 +155,7 @@ export default function InsightsPage() {
               transition={{ duration: 1 }} className="h-full bg-accent rounded-full" />
           </div>
           <p className="text-text-muted text-[9px] mt-1">{user.creatorScore} / {nextTitle?.minScore || '∞'} pts</p>
-        </div>
+        </div>}
 
         {/* Edit profile button */}
         <button onClick={() => setEditOpen(true)}

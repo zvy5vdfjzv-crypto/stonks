@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu } from 'lucide-react'
+import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
 import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
@@ -33,7 +33,7 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
           )}
         <Link to="/" className="flex items-center gap-2 no-underline">
           <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-            <TrendingUp className="text-accent" size={16} />
+            <Zap className="text-accent" size={16} fill="currentColor" />
           </div>
           <span className="font-bold text-base text-text-primary tracking-tight">
             STON<span className="text-accent">KS</span>
