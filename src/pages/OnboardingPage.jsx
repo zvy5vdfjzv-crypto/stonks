@@ -483,6 +483,10 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
+              {authError && (
+                <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
+              )}
+
               <div className="space-y-2">
                 {CATEGORIES.map(cat => {
                   const info = nicheInfo[cat]

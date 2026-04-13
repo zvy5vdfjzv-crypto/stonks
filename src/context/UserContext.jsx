@@ -210,27 +210,43 @@ export function UserProvider({ children }) {
   // Register - create auth account + profile
   const register = useCallback(async (data) => {
     setAuthError(null)
-    // Sign up with Supabase auth
+    const password = data.password || 'stonks1234'
+
+    // Sign up with Supabase auth (auto-confirm if possible)
     const { data: authData, error: authErr } = await supabase.auth.signUp({
       email: data.email,
-      password: data.password || 'stonks1234', // fallback password
+      password,
+      options: { data: { display_name: data.displayName } },
     })
     if (authErr) {
       setAuthError(authErr.message)
       return false
     }
 
-    const userId = authData.user?.id
+    let userId = authData.user?.id
     if (!userId) {
       setAuthError('Erro ao criar conta')
       return false
+    }
+
+    // If no session (email confirmation required), auto sign-in
+    if (!authData.session) {
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password,
+      })
+      if (signInErr) {
+        // If sign-in fails, email might need confirmation
+        setAuthError('Conta criada! Verifique seu email para confirmar, depois clique "Ja tenho conta" para entrar.')
+        return false
+      }
+      userId = signInData.user?.id || userId
     }
 
     const handle = data.handle.startsWith('@') ? data.handle : `@${data.handle}`
     const email = data.email?.trim().toLowerCase()
     const isOwner = email === OWNER_EMAIL
 
-    // Upsert profile (trigger may have created a minimal one)
     const profileData = {
       id: userId,
       email: data.email,
@@ -261,7 +277,7 @@ export function UserProvider({ children }) {
       .upsert(profileData, { onConflict: 'id' })
 
     if (profileErr) {
-      setAuthError(profileErr.message)
+      setAuthError('Erro ao salvar perfil: ' + profileErr.message)
       return false
     }
 
