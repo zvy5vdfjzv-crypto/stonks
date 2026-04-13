@@ -93,10 +93,16 @@ export default function InsightsPage() {
           {/* Stats row */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="font-bold text-text-primary text-lg flex items-center gap-1">{user.displayName}<VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={16} /></h1>
+              <h1 className="font-bold text-text-primary text-lg">{user.displayName}</h1>
+              <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={20} />
               <span className="text-sm">{creatorTitle.badge}</span>
             </div>
-            <p className="text-accent text-sm">{user.handle}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-accent text-sm">{user.handle}</p>
+              {user.accountType === 'owner' && (
+                <span className="text-[9px] bg-accent/20 text-accent px-1.5 py-0.5 rounded font-semibold">ADMIN</span>
+              )}
+            </div>
 
             <div className="flex gap-5 mt-3">
               {[
