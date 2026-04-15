@@ -4,6 +4,7 @@ import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Me
 import EditProfileModal from '../profile/EditProfileModal'
 import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
+import AnimatedNumber from '../ui/AnimatedNumber'
 import { useNotifications } from '../../context/NotificationContext'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
@@ -42,17 +43,14 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* 🧠 NEUROMARKETING: Saldo com numeros rolantes — slot machine effect */}
           <motion.div
-            key={balance}
-            initial={{ scale: 1.05 }}
-            animate={{ scale: 1 }}
+            key="balance-pill"
             className="flex items-center gap-1.5 bg-surface rounded-xl px-3 py-1.5 border border-border"
           >
             <Wallet size={13} className="text-green" />
             <span className="text-green font-semibold text-xs">S$</span>
-            <span className="text-text-primary font-semibold text-xs">
-              {balance.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-            </span>
+            <AnimatedNumber value={balance} className="text-text-primary font-semibold text-xs" />
           </motion.div>
 
           {/* Search */}

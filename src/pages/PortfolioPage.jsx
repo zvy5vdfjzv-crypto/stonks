@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import AnimatedNumber from '../components/ui/AnimatedNumber'
 import { useGame } from '../context/GameContext'
 import { useLang } from '../context/LanguageContext'
 
@@ -48,8 +49,9 @@ export default function PortfolioPage() {
             <Wallet size={15} className="text-green" />
             <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.balance')}</span>
           </div>
+          {/* 🧠 NEUROMARKETING: Numeros rolantes no saldo — slot machine dopamina */}
           <p className="text-text-primary font-bold text-xl">
-            S$ {balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <AnimatedNumber value={balance} prefix="S$ " decimals={2} />
           </p>
         </motion.div>
 
@@ -60,8 +62,9 @@ export default function PortfolioPage() {
           className="bg-surface border border-border rounded-2xl p-4"
         >
           <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.totalValue')}</span>
+          {/* 🧠 NEUROMARKETING: Patrimonio total com spring animation */}
           <p className="text-text-primary font-bold text-xl mt-2">
-            S$ {portfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <AnimatedNumber value={portfolioValue} prefix="S$ " decimals={2} />
           </p>
         </motion.div>
 
@@ -72,11 +75,12 @@ export default function PortfolioPage() {
           className={`bg-surface border rounded-2xl p-4 ${isPnLPositive ? 'border-green/20' : 'border-red/20'}`}
         >
           <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.totalPnL')}</span>
+          {/* 🧠 NEUROMARKETING: PnL rolante — ver lucro subindo e dopaminergico */}
           <p className={`font-bold text-xl mt-2 ${isPnLPositive ? 'text-green' : 'text-red'}`}>
-            {isPnLPositive ? '+' : ''}S$ {totalPnL.toFixed(2)}
+            <AnimatedNumber value={totalPnL} prefix={isPnLPositive ? '+S$ ' : 'S$ '} decimals={2} className={isPnLPositive ? 'text-green' : 'text-red'} />
           </p>
           <p className={`text-xs font-medium ${isPnLPositive ? 'text-green' : 'text-red'}`}>
-            {isPnLPositive ? '+' : ''}{pnlPercent}%
+            <AnimatedNumber value={parseFloat(pnlPercent)} prefix={isPnLPositive ? '+' : ''} decimals={2} className={isPnLPositive ? 'text-green' : 'text-red'} />%
           </p>
         </motion.div>
       </div>

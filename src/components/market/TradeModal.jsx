@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
+import CoinRain from '../ui/CoinRain'
 import { useGame } from '../../context/GameContext'
 import { useLang } from '../../context/LanguageContext'
 
@@ -9,6 +10,7 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
   const [quantity, setQuantity] = useState('')
   const [activeTab, setActiveTab] = useState(mode)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showCoinRain, setShowCoinRain] = useState(false)
   const { balance, holdings, buy, sell } = useGame()
   const { t } = useLang()
 
@@ -23,8 +25,16 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
   const handleTrade = () => {
     if (activeTab === 'buy' && canBuy) {
       buy(trend.id, qty)
+      // 🧠 NEUROMARKETING: Haptic feedback ao comprar — reforço tatil da decisao
+      navigator.vibrate?.([50])
     } else if (activeTab === 'sell' && canSell) {
+      const profit = holding ? (trend.price - holding.avgPrice) * qty : 0
       sell(trend.id, qty)
+      // 🧠 NEUROMARKETING: Haptic + chuva de moedas se vendeu com lucro — jackpot
+      navigator.vibrate?.([50])
+      if (profit > 0) {
+        setShowCoinRain(true)
+      }
     } else {
       return
     }
@@ -46,6 +56,8 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`${trend.emoji} ${trend.name}`}>
+      {/* 🧠 NEUROMARKETING: Chuva de moedas ao vender com lucro */}
+      <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
       <AnimatePresence mode="wait">
         {showSuccess ? (
           <motion.div

@@ -10,8 +10,9 @@ const navItems = [
 ]
 
 export default function BottomNav() {
+  // 🧠 NEUROMARKETING: Glassmorphism na nav — sensacao premium de transparencia
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-[var(--bg-app)]/95 backdrop-blur-xl border-t border-border">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 backdrop-blur-xl bg-[var(--bg-app)]/80 border-t border-border/50">
       <div className="max-w-5xl mx-auto flex">
         {navItems.map(item => (
           <NavLink

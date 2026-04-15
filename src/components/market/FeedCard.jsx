@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarChart2, MoreHorizontal, Send } from 'lucide-react'
+import CoinRain from '../ui/CoinRain'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -19,20 +20,31 @@ export default function FeedCard({ trend, onOpenStats }) {
     { id: 2, user: 'MemeQueen_BR', avatar: '👑', text: 'Esse meme vai explodir essa semana', time: '5m' },
   ])
   const [sent, setSent] = useState(null)
+  const [showCoinRain, setShowCoinRain] = useState(false)
   const { friends, communities, sendMessage } = useChat()
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
+  // 🧠 NEUROMARKETING: FOMO — highlight visual para pumps > 15%
+  const isHotPump = Math.abs(trend.change24h) > 15
 
   const handleBancar = () => {
     if (trend.price > balance) return
     buy(trend.id, 1)
+    // 🧠 NEUROMARKETING: Haptic feedback — toque fisico reforça decisao
+    navigator.vibrate?.([50])
     setShowBancou(true)
     setTimeout(() => setShowBancou(false), 1200)
   }
 
   const handleSell = () => {
     if (!holding || holding.quantity < 1) return
+    const profit = (trend.price - holding.avgPrice) * 1
     sell(trend.id, 1)
+    // 🧠 NEUROMARKETING: Haptic + chuva de moedas no lucro — jackpot dopamina
+    navigator.vibrate?.([50])
+    if (profit > 0) {
+      setShowCoinRain(true)
+    }
   }
 
   const shareText = `${trend.emoji} ${trend.name} (${trend.ticker}) S$${trend.price.toFixed(2)} ${isPositive ? '📈' : '📉'}${trend.change24h.toFixed(2)}%`
@@ -58,7 +70,9 @@ export default function FeedCard({ trend, onOpenStats }) {
   const bancadas = trend.socialProof?.bancadas || 0
 
   return (
-    <article className="border-b border-border/40">
+    <article className={`border-b border-border/40 ${isHotPump ? 'relative' : ''}`}>
+      {/* 🧠 NEUROMARKETING: Chuva de moedas ao vender com lucro */}
+      <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
       {/* Header - user/source info */}
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2.5">
@@ -79,7 +93,9 @@ export default function FeedCard({ trend, onOpenStats }) {
       </div>
 
       {/* Image - tap to like */}
-      <div className="relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden"
+      {/* 🧠 NEUROMARKETING: Borda neon verde pulsante em hot pumps — impossivel ignorar */}
+      <div className={`relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden
+        ${isHotPump ? 'ring-2 ring-green/60 shadow-[0_0_20px_#00D68F40] animate-pulse' : ''}`}
         onDoubleClick={() => { setLiked(true); handleBancar() }}>
         <img
           src={trend.thumbnail}
@@ -100,8 +116,20 @@ export default function FeedCard({ trend, onOpenStats }) {
         </div>
 
         {/* Category badge - top left */}
-        <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-0.5">
-          <span className="text-white text-[10px] font-semibold">{t(`categories.${trend.category}`)}</span>
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+          <div className="bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+            <span className="text-white text-[10px] font-semibold">{t(`categories.${trend.category}`)}</span>
+          </div>
+          {/* 🧠 NEUROMARKETING: FOMO badge — urgencia visual para nao perder a oportunidade */}
+          {isHotPump && (
+            <motion.div
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ repeat: Infinity, duration: 1.2 }}
+              className="bg-green/90 backdrop-blur-sm rounded-full px-2.5 py-0.5 shadow-[0_0_15px_#00D68F]"
+            >
+              <span className="text-white text-[10px] font-bold">🔥 HOT PUMP</span>
+            </motion.div>
+          )}
         </div>
 
         {/* Double-tap heart animation */}

@@ -112,8 +112,9 @@ export default function ChatSidePanel() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 380, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            // 🧠 NEUROMARKETING: Glassmorphism premium — chat panel translucido estilo iOS
             className="hidden sm:flex fixed top-0 right-0 bottom-0 w-[360px] z-30
-              bg-surface border-l border-border flex-col shadow-2xl shadow-black/40"
+              backdrop-blur-xl bg-surface/80 border-l border-border/50 flex-col shadow-2xl shadow-black/40"
           >
             {openChat ? (
               <MiniChatRoom

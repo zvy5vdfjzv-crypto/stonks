@@ -19,11 +19,14 @@ export default function TrendCard({ trend, index, onOpenStats }) {
   const [flash, setFlash] = useState(null)
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
+  // 🧠 NEUROMARKETING: FOMO threshold — memes subindo >15% ganham destaque urgente
+  const isHotPump = Math.abs(trend.change24h) > 15
 
   const handleBuy = (e) => {
     e.stopPropagation()
     if (qty * trend.price > balance) return
     buy(trend.id, qty)
+    navigator.vibrate?.([50]) // 🧠 Haptic feedback
     setFlash('buy')
     setTimeout(() => setFlash(null), 600)
   }
@@ -32,6 +35,7 @@ export default function TrendCard({ trend, index, onOpenStats }) {
     e.stopPropagation()
     if (!holding || holding.quantity < qty) return
     sell(trend.id, qty)
+    navigator.vibrate?.([50]) // 🧠 Haptic feedback
     setFlash('sell')
     setTimeout(() => setFlash(null), 600)
   }
@@ -41,8 +45,10 @@ export default function TrendCard({ trend, index, onOpenStats }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
+      {/* 🧠 NEUROMARKETING: Borda neon verde pulsante em hot pumps — FOMO visual */}
       className={`bg-surface rounded-2xl border overflow-hidden transition-all duration-300
-        ${flash === 'buy' ? 'border-green/60' : flash === 'sell' ? 'border-red/60' : 'border-border'}`}
+        ${flash === 'buy' ? 'border-green/60' : flash === 'sell' ? 'border-red/60'
+          : isHotPump ? 'border-green/50 shadow-[0_0_15px_#00D68F40] animate-pulse' : 'border-border'}`}
     >
       {/* Thumbnail + overlay info */}
       <div
@@ -75,6 +81,16 @@ export default function TrendCard({ trend, index, onOpenStats }) {
               <Badge color={categoryColors[trend.category] || 'neutral'}>
                 {t(`categories.${trend.category}`)}
               </Badge>
+              {/* 🧠 NEUROMARKETING: Badge FOMO — urgencia pulsante */}
+              {isHotPump && (
+                <motion.span
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                  className="bg-green/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-[0_0_10px_#00D68F]"
+                >
+                  🔥 HOT
+                </motion.span>
+              )}
             </div>
           </div>
           <div className="text-right">

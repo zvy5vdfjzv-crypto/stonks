@@ -68,8 +68,9 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            // 🧠 NEUROMARKETING: Glassmorphism premium — sensacao de app premium iOS
             className="fixed top-0 left-0 bottom-0 w-[300px] sm:w-[340px] z-50
-              bg-surface border-r border-border flex flex-col shadow-2xl"
+              backdrop-blur-xl bg-surface/80 border-r border-border/50 flex flex-col shadow-2xl"
           >
             {/* Header */}
             <div className="p-4 border-b border-border">
