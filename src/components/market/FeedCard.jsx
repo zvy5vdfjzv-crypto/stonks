@@ -151,28 +151,30 @@ export default function FeedCard({ trend, onOpenStats }) {
       <div className="px-3 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* BANCAR (replaces like) */}
+            {/* BANCAR — icone Lucide em vez de emoji */}
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={handleBancar}
               disabled={trend.price > balance}
               className="cursor-pointer disabled:opacity-30"
             >
-              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all
-                ${holding ? 'bg-green/20 text-green' : 'bg-surface-hover text-text-primary hover:bg-green/10'}`}>
-                🔥 Bancar
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all border
+                ${holding
+                  ? 'bg-green/15 text-green border-green/25'
+                  : 'bg-surface-hover text-text-primary border-border hover:bg-green/10 hover:border-green/25 hover:text-green'}`}>
+                <TrendingUp size={13} /> Bancar
               </div>
             </motion.button>
 
-            {/* Sell */}
+            {/* Sell — icone Lucide */}
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={handleSell}
               disabled={!holding}
               className="cursor-pointer disabled:opacity-20"
             >
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-hover text-[11px] font-bold text-text-secondary hover:text-red transition-all">
-                📉 Vender
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-hover border border-border text-[11px] font-bold text-text-secondary hover:text-red hover:border-red/25 hover:bg-red/10 transition-all">
+                <TrendingDown size={13} /> Vender
               </div>
             </motion.button>
 

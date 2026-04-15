@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { BarChart2, Eye, Award, Coins, Grid3X3, Trophy, Camera, Pencil, Globe } from 'lucide-react'
+import { BarChart2, Eye, Award, Coins, Grid3X3, Trophy, Camera, Pencil, Globe, Search, Palette, FileText } from 'lucide-react'
+
+const ACHIEVEMENT_ICONS = { Eye, Search, BarChart2, Palette, FileText }
 import { useUser, getCreatorTitle } from '../context/UserContext'
 import { useGame } from '../context/GameContext'
 import { useSocial } from '../context/SocialContext'
@@ -55,11 +57,11 @@ export default function InsightsPage() {
 
     // Achievements
     const achievements = [
-      user?.creatorScore >= 50 && { type: 'achievement', emoji: '👀', label: 'Observador', color: 'from-blue-900/50 to-blue-950/80' },
-      user?.creatorScore >= 200 && { type: 'achievement', emoji: '🔍', label: 'Trend Spotter', color: 'from-purple-900/50 to-purple-950/80' },
-      Object.keys(holdings).length >= 3 && { type: 'achievement', emoji: '📊', label: 'Diversificado', color: 'from-green-900/50 to-green-950/80' },
-      userMemes.length >= 1 && { type: 'achievement', emoji: '🎨', label: 'Criador', color: 'from-pink-900/50 to-pink-950/80' },
-      userPosts.length >= 1 && { type: 'achievement', emoji: '📝', label: 'Analista', color: 'from-yellow-900/50 to-yellow-950/80' },
+      user?.creatorScore >= 50 && { type: 'achievement', icon: 'Eye', label: 'Observador', color: 'from-blue-900/50 to-blue-950/80' },
+      user?.creatorScore >= 200 && { type: 'achievement', icon: 'Search', label: 'Trend Spotter', color: 'from-purple-900/50 to-purple-950/80' },
+      Object.keys(holdings).length >= 3 && { type: 'achievement', icon: 'BarChart2', label: 'Diversificado', color: 'from-green-900/50 to-green-950/80' },
+      userMemes.length >= 1 && { type: 'achievement', icon: 'Palette', label: 'Criador', color: 'from-pink-900/50 to-pink-950/80' },
+      userPosts.length >= 1 && { type: 'achievement', icon: 'FileText', label: 'Analista', color: 'from-yellow-900/50 to-yellow-950/80' },
     ].filter(Boolean)
     achievements.forEach(a => items.push(a))
 
@@ -184,10 +186,12 @@ export default function InsightsPage() {
       {activeTab === 'posts' && (
         <div className="px-1 pt-1">
           {gridItems.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <p className="text-3xl mb-2">📭</p>
-              <p className="text-text-muted text-sm">Nenhum post ainda.</p>
-              <p className="text-text-muted text-xs mt-1">Publique memes e teses para preencher seu perfil!</p>
+            <div className="text-center py-14 px-4">
+              <div className="w-14 h-14 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-3">
+                <Grid3X3 size={24} className="text-text-muted" />
+              </div>
+              <p className="text-text-secondary text-sm font-medium">Nenhum post ainda</p>
+              <p className="text-text-muted text-xs mt-1">Publique memes e teses para preencher seu perfil</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-0.5">
@@ -200,7 +204,7 @@ export default function InsightsPage() {
                 >
                   {item.type === 'achievement' ? (
                     <div className={`w-full h-full bg-gradient-to-br ${item.color} flex flex-col items-center justify-center`}>
-                      <span className="text-3xl mb-1">{item.emoji}</span>
+                      {(() => { const Icon = ACHIEVEMENT_ICONS[item.icon]; return Icon ? <Icon size={28} className="text-white/80 mb-1" /> : null })()}
                       <span className="text-white text-[10px] font-semibold">{item.label}</span>
                     </div>
                   ) : item.image ? (
@@ -226,25 +230,25 @@ export default function InsightsPage() {
       )}
 
       {activeTab === 'stats' && (
-        <div className="px-4 pt-4 space-y-3">
-          {[
-            { icon: BarChart2, label: 'Memes Postados', value: userMemes.length, color: 'text-accent' },
-            { icon: Eye, label: 'Volume Total', value: `${(totalViews / 1000).toFixed(1)}K`, color: 'text-blue' },
-            { icon: Coins, label: 'Capital Atraido', value: `S$ ${totalInvestido.toFixed(0)}`, color: 'text-green' },
-            { icon: Award, label: 'Score Criador', value: user.creatorScore, color: 'text-yellow' },
-          ].map((stat, i) => (
-            <motion.div key={stat.label}
-              initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-              className="bg-surface border border-border rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-surface-hover flex items-center justify-center">
-                  <stat.icon size={18} className="text-text-muted" />
+        <div className="px-4 pt-4">
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              { icon: BarChart2, label: 'Memes Postados', value: userMemes.length, color: 'text-accent' },
+              { icon: Eye, label: 'Volume Total', value: `${(totalViews / 1000).toFixed(1)}K`, color: 'text-blue' },
+              { icon: Coins, label: 'Capital Atraido', value: `S$ ${totalInvestido.toFixed(0)}`, color: 'text-green' },
+              { icon: Award, label: 'Score Criador', value: user.creatorScore, color: 'text-yellow' },
+            ].map((stat, i) => (
+              <motion.div key={stat.label}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                className="bg-surface border border-border rounded-xl p-3">
+                <div className="w-8 h-8 rounded-lg bg-surface-hover flex items-center justify-center mb-2">
+                  <stat.icon size={15} className="text-text-muted" />
                 </div>
-                <span className="text-text-secondary text-sm">{stat.label}</span>
-              </div>
-              <span className={`font-bold text-lg ${stat.color}`}>{stat.value}</span>
-            </motion.div>
-          ))}
+                <p className={`font-bold text-lg ${stat.color}`}>{stat.value}</p>
+                <p className="text-text-muted text-[10px] mt-0.5">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
 
           {/* Memes list */}
           {userMemes.length > 0 && (

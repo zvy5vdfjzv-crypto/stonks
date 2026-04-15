@@ -66,6 +66,16 @@ html.light {
 }
 .page-enter { animation: fadeSlideIn 0.3s ease-out; }
 
+@keyframes neon-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 214, 143, 0.2); }
+  50% { box-shadow: 0 0 18px rgba(0, 214, 143, 0.4); }
+}
+.glow-neon { animation: neon-glow 2s ease-in-out infinite; }
+
+.card-elevated {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+}
+
 body {
   margin: 0;
   padding: 0;

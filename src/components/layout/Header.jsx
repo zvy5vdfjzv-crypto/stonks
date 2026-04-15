@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu, Search } from 'lucide-react'
+import { Zap, Wallet, Bell, Trophy, Crown, BarChart2, Settings, Pencil, Plus, Menu, Search, TrendingUp, TrendingDown } from 'lucide-react'
 import EditProfileModal from '../profile/EditProfileModal'
 import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
@@ -20,6 +20,9 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const prevBalanceRef = useRef(balance)
+  const balanceDelta = balance - prevBalanceRef.current
+  useEffect(() => { prevBalanceRef.current = balance }, [balance])
 
   return (
   <>
@@ -43,7 +46,7 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 🧠 NEUROMARKETING: Saldo com numeros rolantes — slot machine effect */}
+          {/* Saldo com numeros rolantes + indicador de variacao */}
           <motion.div
             key="balance-pill"
             className="flex items-center gap-1.5 bg-surface rounded-xl px-3 py-1.5 border border-border"
@@ -51,6 +54,19 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
             <Wallet size={13} className="text-green" />
             <span className="text-green font-semibold text-xs">S$</span>
             <AnimatedNumber value={balance} className="text-text-primary font-semibold text-xs" />
+            {balanceDelta !== 0 && (
+              <AnimatePresence>
+                <motion.span
+                  key={balanceDelta}
+                  initial={{ opacity: 0, y: balanceDelta > 0 ? 4 : -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={`text-[9px] font-bold flex items-center ${balanceDelta > 0 ? 'text-green' : 'text-red'}`}
+                >
+                  {balanceDelta > 0 ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+                </motion.span>
+              </AnimatePresence>
+            )}
           </motion.div>
 
           {/* Search */}

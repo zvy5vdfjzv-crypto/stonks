@@ -163,10 +163,11 @@ export default function TrendCard({ trend, index, onOpenStats }) {
         <button
           onClick={handleSell}
           disabled={!holding || holding.quantity < qty}
-          className="bg-red/20 hover:bg-red/30 disabled:opacity-30 text-red text-xs font-semibold
-            px-3 py-2 rounded-lg cursor-pointer transition-all disabled:cursor-not-allowed"
+          className="bg-red/15 hover:bg-red/25 disabled:opacity-30 text-red text-xs font-semibold
+            px-3 py-2 rounded-lg cursor-pointer transition-all disabled:cursor-not-allowed
+            flex items-center gap-1 border border-red/20"
         >
-          {t('trade.sell')}
+          <TrendingDown size={12} /> {t('trade.sell')}
         </button>
       </div>
     </motion.div>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Briefcase, Flame } from 'lucide-react'
 import AnimatedNumber from '../components/ui/AnimatedNumber'
 import { useGame } from '../context/GameContext'
 import { useLang } from '../context/LanguageContext'
@@ -43,11 +43,11 @@ export default function PortfolioPage() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-surface border border-border rounded-2xl p-4"
+          className="bg-surface border border-border rounded-2xl p-3"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <Wallet size={15} className="text-green" />
-            <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.balance')}</span>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Wallet size={14} className="text-green" />
+            <span className="text-text-muted text-[10px] font-medium uppercase tracking-wider">{t('portfolio.balance')}</span>
           </div>
           {/* 🧠 NEUROMARKETING: Numeros rolantes no saldo — slot machine dopamina */}
           <p className="text-text-primary font-bold text-xl">
@@ -59,9 +59,9 @@ export default function PortfolioPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-surface border border-border rounded-2xl p-4"
+          className="bg-surface border border-border rounded-2xl p-3"
         >
-          <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.totalValue')}</span>
+          <span className="text-text-muted text-[10px] font-medium uppercase tracking-wider">{t('portfolio.totalValue')}</span>
           {/* 🧠 NEUROMARKETING: Patrimonio total com spring animation */}
           <p className="text-text-primary font-bold text-xl mt-2">
             <AnimatedNumber value={portfolioValue} prefix="S$ " decimals={2} />
@@ -72,9 +72,9 @@ export default function PortfolioPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`bg-surface border rounded-2xl p-4 ${isPnLPositive ? 'border-green/20' : 'border-red/20'}`}
+          className={`bg-surface border rounded-2xl p-3 ${isPnLPositive ? 'border-green/20' : 'border-red/20'}`}
         >
-          <span className="text-text-muted text-xs font-medium uppercase">{t('portfolio.totalPnL')}</span>
+          <span className="text-text-muted text-[10px] font-medium uppercase tracking-wider">{t('portfolio.totalPnL')}</span>
           {/* 🧠 NEUROMARKETING: PnL rolante — ver lucro subindo e dopaminergico */}
           <p className={`font-bold text-xl mt-2 ${isPnLPositive ? 'text-green' : 'text-red'}`}>
             <AnimatedNumber value={totalPnL} prefix={isPnLPositive ? '+S$ ' : 'S$ '} decimals={2} className={isPnLPositive ? 'text-green' : 'text-red'} />
@@ -93,10 +93,18 @@ export default function PortfolioPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-14 bg-surface border border-border rounded-2xl"
+          className="text-center py-12 bg-surface border border-border rounded-2xl"
         >
-          <p className="text-3xl mb-3">📭</p>
-          <p className="text-text-muted text-sm">{t('portfolio.noHoldings')}</p>
+          <div className="w-14 h-14 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-3">
+            <Briefcase size={24} className="text-text-muted" />
+          </div>
+          <p className="text-text-secondary text-sm font-medium">{t('portfolio.noHoldings')}</p>
+          <p className="text-text-muted text-xs mt-1 mb-4">Compre memes no mercado para comecar</p>
+          <Link to="/"
+            className="inline-flex items-center gap-1.5 bg-accent hover:bg-accent-light text-white px-5 py-2 rounded-xl
+              text-xs font-semibold no-underline transition-colors">
+            <Flame size={14} /> Explorar mercado
+          </Link>
         </motion.div>
       ) : (
         <div className="space-y-2.5 mb-8">

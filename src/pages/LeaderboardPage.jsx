@@ -48,8 +48,15 @@ export default function LeaderboardPage() {
               w-28 sm:w-36
               ${i === 0 ? 'order-2 -mt-3' : i === 1 ? 'order-1 mt-2' : 'order-3 mt-4'}`}
           >
-            <span className="text-xl mb-1">{['🥇', '🥈', '🥉'][i]}</span>
-            <span className="text-3xl mb-2">{player.avatar}</span>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1
+              ${i === 0 ? 'bg-[#FFD700]/20' : i === 1 ? 'bg-[#C0C0C0]/20' : 'bg-[#CD7F32]/20'}`}>
+              <Trophy size={16} className={i === 0 ? 'text-[#FFD700]' : i === 1 ? 'text-[#C0C0C0]' : 'text-[#CD7F32]'} />
+            </div>
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2
+              ${i === 0 ? 'border-[#FFD700]/50' : i === 1 ? 'border-[#C0C0C0]/50' : 'border-[#CD7F32]/50'}
+              bg-surface-hover mb-2`}>
+              {player.avatar}
+            </div>
             <p className={`text-xs font-semibold text-center truncate w-full
               ${player.isUser ? 'text-accent' : 'text-text-primary'}`}>
               {player.name}

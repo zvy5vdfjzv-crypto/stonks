@@ -211,9 +211,12 @@ export default function ShopPage() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                  {/* Odds tooltip */}
-                  <div className="absolute bottom-1 right-1 text-[7px] text-white/60 font-mono">
-                    {box.odds.legendary}% lend.
+                  {/* Odds bar visual */}
+                  <div className="absolute bottom-1.5 left-1.5 right-1.5 flex h-1 rounded-full overflow-hidden bg-black/30">
+                    <div className="bg-text-muted/60" style={{ width: `${box.odds.common}%` }} title="Comum" />
+                    <div className="bg-blue/70" style={{ width: `${box.odds.rare}%` }} title="Raro" />
+                    <div className="bg-accent/80" style={{ width: `${box.odds.epic}%` }} title="Epico" />
+                    <div className="bg-yellow/90" style={{ width: `${box.odds.legendary}%` }} title="Lendario" />
                   </div>
                 </div>
                 {/* Box info */}
