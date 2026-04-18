@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { BarChart2, Eye, Award, Coins, Grid3X3, Trophy, Camera, Pencil, Globe, Search, Palette, FileText } from 'lucide-react'
+import { BarChart2, Eye, Award, Coins, Grid3X3, Trophy, Camera, Pencil, Globe, Search, Palette, FileText, Check } from 'lucide-react'
 
 const ACHIEVEMENT_ICONS = { Eye, Search, BarChart2, Palette, FileText }
 import { useUser, getCreatorTitle } from '../context/UserContext'
@@ -92,10 +92,12 @@ export default function InsightsPage() {
             </div>
           </div>
 
-          {/* Stats row */}
+          {/* 🧠 Nome colorido por nivel — status publico permanente (briefing 4.9) */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="font-bold text-text-primary text-lg">{user.displayName}</h1>
+              <h1 className={`font-bold text-lg ${user.accountType === 'owner' ? 'text-accent-light' : creatorTitle.color}`}>
+                {user.displayName}
+              </h1>
               <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={20} />
               {user.accountType !== 'owner' && <span className="text-sm">{creatorTitle.badge}</span>}
             </div>
@@ -106,6 +108,7 @@ export default function InsightsPage() {
               )}
             </div>
 
+            {/* Stats grid — mono, tabular-nums, estilo Bloomberg */}
             <div className="flex gap-5 mt-3">
               {[
                 { value: userMemes.length + userPosts.length, label: 'Posts' },
@@ -113,8 +116,8 @@ export default function InsightsPage() {
                 { value: user.creatorScore, label: 'Score' },
               ].map(s => (
                 <div key={s.label} className="text-center">
-                  <p className="font-bold text-text-primary text-sm">{s.value}</p>
-                  <p className="text-text-muted text-[10px]">{s.label}</p>
+                  <p className="font-mono-stonks font-bold text-text-primary text-base tabular-nums">{s.value}</p>
+                  <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-wider">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -190,8 +193,11 @@ export default function InsightsPage() {
               <div className="w-14 h-14 rounded-2xl bg-surface-hover flex items-center justify-center mx-auto mb-3">
                 <Grid3X3 size={24} className="text-text-muted" />
               </div>
-              <p className="text-text-secondary text-sm font-medium">Nenhum post ainda</p>
-              <p className="text-text-muted text-xs mt-1">Publique memes e teses para preencher seu perfil</p>
+              {/* 🧠 Empty state com personalidade — briefing 9 */}
+              <p className="text-text-secondary text-sm font-mono-stonks font-bold uppercase tracking-wider">
+                📉 Feed seco
+              </p>
+              <p className="text-text-muted text-xs mt-1">Larga o primeiro meme ai, bro. Perfil nao se preenche sozinho.</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-0.5">
@@ -281,19 +287,57 @@ export default function InsightsPage() {
           <div className="space-y-2">
             {CREATOR_TITLES.map((title, i) => {
               const unlocked = (user?.creatorScore || 0) >= title.minScore
+              const progress = Math.min(100, ((user?.creatorScore || 0) / title.minScore) * 100)
+              const isNext = !unlocked && progress > 0 && CREATOR_TITLES.findIndex(t => !((user?.creatorScore || 0) >= t.minScore)) === i
               return (
                 <motion.div key={title.title}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
-                  className={`flex items-center gap-3 p-4 rounded-xl border transition-colors
-                    ${unlocked ? 'bg-surface border-border' : 'bg-surface/50 border-border/30 opacity-40'}`}>
-                  <span className="text-2xl">{title.badge}</span>
-                  <div className="flex-1">
-                    <p className={`font-semibold text-sm ${unlocked ? title.color : 'text-text-muted'}`}>{title.title}</p>
-                    <p className="text-text-muted text-[10px]">{title.minScore}+ pontos</p>
+                  initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all
+                    ${unlocked
+                      ? 'bg-surface border-border'
+                      : isNext
+                        ? 'bg-surface border-accent/30 shadow-[0_0_16px_rgba(124,92,255,0.1)]'
+                        : 'bg-surface/50 border-border/30'}`}>
+                  {/* Badge grande — silhueta filtrada quando bloqueado */}
+                  <div className="relative shrink-0">
+                    <span className={`text-3xl block transition-all ${unlocked ? '' : 'grayscale opacity-30 contrast-50'}`}>
+                      {title.badge}
+                    </span>
+                    {unlocked && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-money flex items-center justify-center">
+                        <Check size={9} className="text-[#0a0a0f]" strokeWidth={4} />
+                      </span>
+                    )}
                   </div>
-                  {unlocked && (
-                    <span className="text-green text-[11px] font-semibold bg-green/10 px-2 py-0.5 rounded-full">
-                      ✓ Desbloqueado
+
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold text-sm ${unlocked ? title.color : 'text-text-muted'}`}>
+                      {title.title}
+                    </p>
+                    <p className="text-text-muted text-[10px] font-mono-stonks tabular-nums">
+                      {title.minScore.toLocaleString()} pts
+                    </p>
+                    {/* Progress bar para o proximo */}
+                    {isNext && (
+                      <div className="mt-1.5 h-1 bg-surface-hover rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+                          className="h-full bg-accent rounded-full" />
+                      </div>
+                    )}
+                  </div>
+
+                  {unlocked ? (
+                    <span className="text-money text-[10px] font-mono-stonks font-bold uppercase tracking-wider bg-money/10 border border-money/25 px-2 py-0.5 rounded">
+                      Ativo
+                    </span>
+                  ) : isNext ? (
+                    <span className="text-accent text-[10px] font-mono-stonks font-bold uppercase tracking-wider">
+                      Proximo
+                    </span>
+                  ) : (
+                    <span className="text-text-tertiary text-[10px] font-mono-stonks uppercase tracking-wider">
+                      Bloqueado
                     </span>
                   )}
                 </motion.div>
