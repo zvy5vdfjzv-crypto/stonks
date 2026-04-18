@@ -59,14 +59,12 @@ export default function MarketPage() {
         ))}
       </div>
 
-      {/* Feed - Instagram-style scroll */}
-      <div>
+      {/* Feed - TikTok-style fluid scroll com snap */}
+      <div className="snap-feed momentum-scroll">
         {feedTrends.map(trend => (
-          <FeedCard
-            key={trend.id}
-            trend={trend}
-            onOpenStats={setStatsTrend}
-          />
+          <div key={trend.id} className="snap-item">
+            <FeedCard trend={trend} onOpenStats={setStatsTrend} />
+          </div>
         ))}
       </div>
 

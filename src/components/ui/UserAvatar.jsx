@@ -1,11 +1,11 @@
-// 🧠 FASE 7 — Avatar REAL com composicao de items equipados.
-// Antes: items comprados NAO apareciam. Agora: overlays SVG compostos em camadas.
-// Ordem (bottom → top): base avatar → frame → glasses → hat → effect
+// 🧠 Avatar com composicao de items equipados + suporte a CHARACTER RPG.
+// 4 modos via user.avatarType: 'emoji' | 'photo' | '3d' (face) | 'character' (classe RPG).
+// Para character: renderiza SVG do personagem + overlays dos items.
 import { useUser, SHOP_ITEMS } from '../../context/UserContext'
+import { renderCharacterSVG } from '../../data/characters'
 
 function OverlaySVG({ overlays, size }) {
   if (!overlays.length) return null
-  // Items ja tem svgOverlay como string HTML em viewBox 100x100
   const composed = overlays.join('')
   return (
     <svg
@@ -22,13 +22,14 @@ export default function UserAvatar({ size = 40, className = '', showEquipped = t
   const { user } = useUser()
   if (!user) return null
 
-  const isUrl = typeof user.avatar === 'string' && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))
+  const avatarType = user.avatarType || 'emoji'
+  const isCharacter = avatarType === 'character'
+  const isUrl = !isCharacter && typeof user.avatar === 'string' && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))
 
-  // Resolver items equipados em ordem correta de layering
+  // Items equipados — mesma ordem em todos os modos
   const eq = user.equippedItems || {}
   const overlays = []
   if (showEquipped) {
-    // Order: frame (bottom decoration) → glasses → hat → effect (top)
     ['frame', 'glasses', 'hat', 'effect'].forEach(cat => {
       const itemId = eq[cat]
       if (!itemId) return
@@ -37,21 +38,37 @@ export default function UserAvatar({ size = 40, className = '', showEquipped = t
     })
   }
 
-  // Base do avatar
-  const base = isUrl ? (
-    <img
-      src={user.avatar}
-      alt={user.displayName}
-      className="absolute inset-0 w-full h-full object-cover"
-    />
-  ) : (
-    <div
-      className="absolute inset-0 flex items-center justify-center bg-accent/20"
-      style={{ fontSize: size * 0.55 }}
-    >
-      {user.avatar}
-    </div>
-  )
+  // Base
+  let base
+  if (isCharacter) {
+    const svgMarkup = renderCharacterSVG(user.avatar || 'humano')
+    base = (
+      <svg
+        className="absolute inset-0"
+        width={size}
+        height={size}
+        viewBox="0 0 100 100"
+        dangerouslySetInnerHTML={{ __html: svgMarkup }}
+      />
+    )
+  } else if (isUrl) {
+    base = (
+      <img
+        src={user.avatar}
+        alt={user.displayName}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+    )
+  } else {
+    base = (
+      <div
+        className="absolute inset-0 flex items-center justify-center bg-accent/20"
+        style={{ fontSize: size * 0.55 }}
+      >
+        {user.avatar}
+      </div>
+    )
+  }
 
   return (
     <div

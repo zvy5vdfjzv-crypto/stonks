@@ -5,6 +5,7 @@ import EditProfileModal from '../profile/EditProfileModal'
 import VerifiedBadge from '../ui/VerifiedBadge'
 import NotificationPanel from '../notifications/NotificationPanel'
 import AnimatedNumber from '../ui/AnimatedNumber'
+import StonksLogo from '../ui/StonksLogo'
 import { useNotifications } from '../../context/NotificationContext'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
@@ -35,13 +36,8 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
               <Menu size={20} />
             </button>
           )}
-        <Link to="/" className="flex items-center gap-2 no-underline">
-          <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-            <Zap className="text-accent" size={16} fill="currentColor" />
-          </div>
-          <span className="font-bold text-base text-text-primary tracking-tight">
-            STON<span className="text-accent">KS</span>
-          </span>
+        <Link to="/" className="flex items-center no-underline">
+          <StonksLogo size={26} />
         </Link>
         </div>
 

@@ -105,6 +105,30 @@ html.light {
 
 * { box-sizing: border-box; }
 
+/* 🌊 FLUIDEZ — rolamento organico Gen Z */
+html {
+  scroll-behavior: smooth;
+  /* Melhor tap highlight no mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scroll snap utils */
+.snap-feed {
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+}
+.snap-feed::-webkit-scrollbar { display: none; }
+.snap-item { scroll-snap-align: start; scroll-snap-stop: normal; }
+
+/* Over-scroll bounce em iOS/moderno */
+body { overscroll-behavior-y: contain; }
+
+/* Momentum scroll em containers */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 /* ================================================================
    UTILITARIAS DE IDENTIDADE
    ================================================================ */

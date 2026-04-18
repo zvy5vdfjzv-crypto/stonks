@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, ArrowRight, Check, Sparkles, Camera, Shuffle, User, ImagePlus } from 'lucide-react'
+import { Zap, ArrowRight, Check, Sparkles, Camera, Shuffle, User, ImagePlus, Swords } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useLang } from '../context/LanguageContext'
 import { CATEGORIES } from '../data/trends'
+import { CHARACTER_CLASSES, renderCharacterSVG } from '../data/characters'
+import StonksLogo from '../components/ui/StonksLogo'
 
 const EMOJIS = ['🎮', '🚀', '💎', '🔥', '👑', '🦍', '🐱', '🤖', '⚡', '🎯', '🌙', '🎨']
 
@@ -94,18 +96,19 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
       <label className="text-text-secondary text-xs font-medium block">Seu avatar</label>
 
       {/* Avatar type tabs */}
-      <div className="flex bg-surface-hover rounded-xl p-1 gap-1">
+      <div className="grid grid-cols-4 bg-surface-hover rounded-xl p-1 gap-1">
         {[
+          { id: 'character', icon: null, iconComp: Swords, label: 'Personagem' },
           { id: 'emoji', icon: '😎', label: 'Emoji' },
           { id: 'photo', icon: null, iconComp: Camera, label: 'Foto' },
-          { id: '3d', icon: null, iconComp: User, label: 'Criar Avatar' },
+          { id: '3d', icon: null, iconComp: User, label: 'Face' },
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setAvatarType(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 py-2 rounded-lg text-[10px] sm:text-xs font-semibold
               cursor-pointer transition-all
-              ${avatarType === tab.id ? 'bg-accent text-white' : 'text-text-muted hover:text-text-secondary'}`}
+              ${avatarType === tab.id ? 'bg-money text-[#0a0a0f]' : 'text-text-muted hover:text-text-secondary'}`}
           >
             {tab.icon ? <span>{tab.icon}</span> : <tab.iconComp size={14} />}
             {tab.label}
@@ -114,6 +117,47 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
       </div>
 
       <div>
+        {/* 🏰 Personagem picker — 6 classes RPG */}
+        {avatarType === 'character' && (
+          <div>
+            <p className="text-text-muted text-[10px] text-center mb-3 font-mono-stonks uppercase tracking-wider">
+              Escolha sua classe
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {CHARACTER_CLASSES.map(cls => {
+                const selected = avatar === cls.id
+                return (
+                  <button
+                    key={cls.id}
+                    onClick={() => { setAvatar(cls.id); setAvatarUrl(null) }}
+                    className={`relative rounded-xl overflow-hidden cursor-pointer transition-all group
+                      ${selected
+                        ? 'ring-2 ring-money scale-105 glow-money'
+                        : 'ring-1 ring-border hover:ring-money/40'}`}
+                  >
+                    <svg viewBox="0 0 100 100" className="w-full aspect-square block"
+                      dangerouslySetInnerHTML={{ __html: renderCharacterSVG(cls.id) }} />
+                    <div className={`absolute inset-x-0 bottom-0 py-1.5 text-center backdrop-blur-sm
+                      ${selected ? 'bg-money/90 text-[#0a0a0f]' : 'bg-black/70 text-white'}`}>
+                      <p className="font-mono-stonks font-bold text-[10px] uppercase tracking-wider">{cls.name}</p>
+                    </div>
+                    {selected && (
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-money flex items-center justify-center">
+                        <Check size={10} className="text-[#0a0a0f]" strokeWidth={4} />
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            {avatar && CHARACTER_CLASSES.find(c => c.id === avatar) && (
+              <p className="text-text-secondary text-xs text-center mt-3 italic">
+                {CHARACTER_CLASSES.find(c => c.id === avatar)?.tagline}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Emoji picker */}
         {avatarType === 'emoji' && (
           <div>
@@ -307,14 +351,10 @@ export default function OnboardingPage() {
           {mode === 'welcome' && (
             <motion.div key="welcome" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="space-y-5 text-center">
-              <div className="mb-8">
-                <div className="w-20 h-20 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
-                  <Zap className="text-accent" size={40} fill="currentColor" />
-                </div>
-                <h1 className="text-4xl font-bold text-text-primary">
-                  STON<span className="text-accent">KS</span>
-                </h1>
-                <p className="text-text-secondary text-sm mt-2">A Bolsa dos Virais</p>
+              <div className="mb-8 flex flex-col items-center gap-3">
+                <StonksLogo size={64} showWordmark={false} />
+                <StonksLogo size={36} showWordmark={true} animated={false} />
+                <p className="text-text-secondary text-sm font-mono-stonks uppercase tracking-[0.3em]">A Bolsa dos Virais</p>
               </div>
               <button onClick={() => setMode('register')}
                 className="w-full bg-accent hover:bg-accent-light text-white py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all flex items-center justify-center gap-2">
@@ -331,11 +371,9 @@ export default function OnboardingPage() {
           {mode === 'login' && (
             <motion.div key="login" initial={{ opacity: 0, x: 200 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
               className="space-y-5">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
-                  <Zap className="text-accent" size={32} fill="currentColor" />
-                </div>
-                <h2 className="text-xl font-bold text-text-primary">Entrar no STONKS</h2>
+              <div className="flex flex-col items-center gap-2 mb-4">
+                <StonksLogo size={44} />
+                <h2 className="text-sm font-mono-stonks uppercase tracking-[0.2em] text-text-secondary">Entrar na bolsa</h2>
               </div>
               {authError && (
                 <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
@@ -386,14 +424,9 @@ export default function OnboardingPage() {
               className="space-y-5"
             >
               {/* Logo */}
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
-                  <Zap className="text-accent" size={32} fill="currentColor" />
-                </div>
-                <h1 className="text-3xl font-bold text-text-primary">
-                  STON<span className="text-accent">KS</span>
-                </h1>
-                <p className="text-text-secondary text-sm mt-2">Criar sua conta</p>
+              <div className="flex flex-col items-center gap-2 mb-6">
+                <StonksLogo size={48} />
+                <p className="text-text-secondary text-sm font-mono-stonks uppercase tracking-[0.2em]">Criar sua conta</p>
               </div>
 
               {authError && (
