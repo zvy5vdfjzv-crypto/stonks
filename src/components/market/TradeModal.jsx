@@ -1,17 +1,22 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Zap } from 'lucide-react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import CoinRain from '../ui/CoinRain'
 import { useGame } from '../../context/GameContext'
 import { useLang } from '../../context/LanguageContext'
+import { sound } from '../../lib/sound'
+import { haptics } from '../../lib/haptics'
 
 export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
   const [quantity, setQuantity] = useState('')
   const [activeTab, setActiveTab] = useState(mode)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showCoinRain, setShowCoinRain] = useState(false)
-  const { balance, holdings, buy, sell } = useGame()
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+  const { balance, holdings, buy, sell, sellAll } = useGame()
   const { t } = useLang()
 
   if (!trend) return null
@@ -22,20 +27,28 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
   const canBuy = qty > 0 && total <= balance
   const canSell = qty > 0 && holding && holding.quantity >= qty
 
-  const handleTrade = () => {
+  const handleTrade = async () => {
+    setError(null)
+    setSubmitting(true)
+    let res
     if (activeTab === 'buy' && canBuy) {
-      buy(trend.id, qty)
-      // 🧠 NEUROMARKETING: Haptic feedback ao comprar — reforço tatil da decisao
-      navigator.vibrate?.([50])
+      res = await buy(trend.id, qty)
+      if (res?.success) { sound.register(); haptics.fire('medium') }
     } else if (activeTab === 'sell' && canSell) {
       const profit = holding ? (trend.price - holding.avgPrice) * qty : 0
-      sell(trend.id, qty)
-      // 🧠 NEUROMARKETING: Haptic + chuva de moedas se vendeu com lucro — jackpot
-      navigator.vibrate?.([50])
-      if (profit > 0) {
-        setShowCoinRain(true)
+      res = await sell(trend.id, qty)
+      if (res?.success) {
+        if (profit > 0) { sound.gain(); haptics.fire('success'); setShowCoinRain(true) }
+        else { sound.loss(); haptics.fire('loss') }
       }
     } else {
+      setSubmitting(false)
+      return
+    }
+    setSubmitting(false)
+    if (!res?.success) {
+      setError(res?.error || 'Erro ao executar trade')
+      haptics.fire('denied')
       return
     }
     setShowSuccess(true)
@@ -44,6 +57,25 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
       setQuantity('')
       onClose()
     }, 1500)
+  }
+
+  // ⚡ Panic Sell — liquidar toda a posicao
+  const handlePanicSell = async () => {
+    if (!holding || holding.quantity <= 0) return
+    setError(null)
+    setSubmitting(true)
+    const profit = (trend.price - holding.avgPrice) * holding.quantity
+    const res = await sellAll(trend.id)
+    setSubmitting(false)
+    if (res?.success) {
+      if (profit >= 0) { sound.gain(); haptics.fire('success'); setShowCoinRain(true) }
+      else { sound.loss(); haptics.fire('loss') }
+      setShowSuccess(true)
+      setTimeout(() => { setShowSuccess(false); onClose() }, 1500)
+    } else {
+      setError(res?.error || 'Erro ao liquidar')
+      haptics.fire('denied')
+    }
   }
 
   const setMax = () => {
@@ -162,11 +194,29 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
                 variant={activeTab === 'buy' ? 'money' : 'red'}
                 haptic
                 onClick={handleTrade}
-                disabled={activeTab === 'buy' ? !canBuy : !canSell}
+                disabled={submitting || (activeTab === 'buy' ? !canBuy : !canSell)}
                 className="w-full py-3.5"
               >
-                {t(`trade.${activeTab}`)} {qty > 0 ? `${qty}x ${trend.ticker}` : ''}
+                {submitting ? '...' : `${t(`trade.${activeTab}`)} ${qty > 0 ? `${qty}x ${trend.ticker}` : ''}`}
               </Button>
+
+              {/* ⚡ PANIC SELL — so aparece no tab sell quando tem posicao */}
+              {activeTab === 'sell' && holding && holding.quantity > 0 && (
+                <button
+                  onClick={handlePanicSell}
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
+                    bg-loss/10 border border-loss/30 text-loss font-mono-stonks font-bold text-xs uppercase tracking-wider
+                    hover:bg-loss/20 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Zap size={14} strokeWidth={2.5} />
+                  Realizar lucro rapido (vender todas {holding.quantity}x)
+                </button>
+              )}
+
+              {error && (
+                <p className="text-loss text-xs text-center font-mono-stonks">{error}</p>
+              )}
 
               {activeTab === 'buy' && qty > 0 && !canBuy && (
                 <p className="text-red text-xs text-center">{t('trade.insufficientFunds')}</p>

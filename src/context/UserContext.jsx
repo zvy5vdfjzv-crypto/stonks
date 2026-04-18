@@ -136,6 +136,7 @@ function dbToUser(profile) {
     avatarConfig: null,
     // 🏰 Character class RPG — campo separado do avatar
     characterClass: profile.character_class || 'humano',
+    hypeCoinsBalance: Number(profile.hype_coins_balance ?? 1000),
     bio: profile.bio || '',
     socialLinks: profile.social_links || { instagram: '', x: '', youtube: '', linkedin: '' },
     niches: profile.niches || [],

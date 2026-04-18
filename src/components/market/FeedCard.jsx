@@ -32,27 +32,30 @@ export default function FeedCard({ trend, onOpenStats }) {
   // 🧠 NEUROMARKETING: FOMO — highlight visual para pumps > 15%
   const isHotPump = Math.abs(trend.change24h) > 15
 
-  const handleBancar = (evt) => {
+  const handleBancar = async (evt) => {
     if (trend.price > balance) return
-    buy(trend.id, 1)
-    // 🎵 Caixa registradora + coin chime + haptic medio
+    // Preview UX instantaneo — feedback antes da RPC resolver
     sound.register()
     haptics.fire('medium')
     setShowBancou(true)
     setTimeout(() => setShowBancou(false), 1200)
-    // 🧠 Moedas voando do ponto de click → wallet no header
     if (evt?.clientX !== undefined) {
       setFlyOrigin({ x: evt.clientX, y: evt.clientY })
     } else {
       setFlyOrigin({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
     }
+    // RPC server-side (unica fonte da verdade)
+    const res = await buy(trend.id, 1)
+    if (!res?.success) {
+      haptics.fire('denied')
+    }
   }
 
-  const handleSell = () => {
+  const handleSell = async () => {
     if (!holding || holding.quantity < 1) return
     const profit = (trend.price - holding.avgPrice) * 1
-    sell(trend.id, 1)
-    // 🎵 Tom ascendente no lucro, descendente na perda
+    const res = await sell(trend.id, 1)
+    if (!res?.success) { haptics.fire('denied'); return }
     if (profit > 0) {
       sound.gain()
       haptics.fire('success')

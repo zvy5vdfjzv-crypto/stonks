@@ -26,22 +26,24 @@ export default function TrendCard({ trend, index, onOpenStats }) {
   // 🧠 NEUROMARKETING: FOMO threshold — memes subindo >15% ganham destaque urgente
   const isHotPump = Math.abs(trend.change24h) > 15
 
-  const handleBuy = (e) => {
+  const handleBuy = async (e) => {
     e.stopPropagation()
     if (qty * trend.price > balance) return
-    buy(trend.id, qty)
     sound.register()
     haptics.fire('medium')
     setFlash('buy')
     setTimeout(() => setFlash(null), 600)
     setFlyOrigin({ x: e.clientX, y: e.clientY, count: Math.min(qty, 8) })
+    const res = await buy(trend.id, qty)
+    if (!res?.success) haptics.fire('denied')
   }
 
-  const handleSell = (e) => {
+  const handleSell = async (e) => {
     e.stopPropagation()
     if (!holding || holding.quantity < qty) return
     const profit = (trend.price - holding.avgPrice) * qty
-    sell(trend.id, qty)
+    const res = await sell(trend.id, qty)
+    if (!res?.success) { haptics.fire('denied'); return }
     if (profit > 0) { sound.gain(); haptics.fire('success') }
     else { sound.loss(); haptics.fire('loss') }
     setFlash('sell')

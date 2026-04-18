@@ -174,6 +174,26 @@ export default function EditProfileModal({ isOpen, onClose }) {
                     </div>
                   </div>
 
+                  {/* 🎮 Avatar 3D placeholder — integracao Ready Player Me em breve */}
+                  <div>
+                    <label className="text-text-secondary text-xs font-medium block mb-2">
+                      Avatar 3D <span className="text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded ml-1 font-mono-stonks uppercase tracking-wider">Em breve</span>
+                    </label>
+                    <div id="rpm-container"
+                      className="aspect-video w-full bg-gradient-to-br from-[#14141c] to-[#0a0a0f] border border-dashed border-border rounded-xl
+                        flex flex-col items-center justify-center gap-2 text-center p-4">
+                      <div className="w-12 h-12 rounded-xl bg-surface-hover flex items-center justify-center">
+                        <span className="text-2xl">🕴️</span>
+                      </div>
+                      <p className="text-text-secondary text-xs font-mono-stonks uppercase tracking-wider">
+                        Ready Player Me
+                      </p>
+                      <p className="text-text-muted text-[10px] max-w-xs">
+                        Em breve: conecte seu avatar 3D premium e equipe items de raridade lendaria.
+                      </p>
+                    </div>
+                  </div>
+
                   <button onClick={handleSave} disabled={!displayName.trim() || !handle.trim()}
                     className="w-full bg-accent hover:bg-accent-light disabled:opacity-30 text-white py-3 rounded-xl
                       font-semibold text-sm cursor-pointer transition-all disabled:cursor-not-allowed">

@@ -1,6 +1,11 @@
-// 🏰 FASE 7 — Sigil RPG/Warcraft pros titulos de ranking.
+// 🏰 Sigil RPG/Warcraft pros titulos de ranking.
 // Container circular ornado com cor por tier + raios + pulse nos tiers altos.
+// Icone central: Lucide SVG (nao emoji) — premium, escalavel, monocromatico.
 import { motion } from 'framer-motion'
+import { Sprout, Key, Shield, Flame, Crown, Eye, Gem } from 'lucide-react'
+
+// Icone Lucide por tier
+const TIER_ICONS = [Sprout, Key, Shield, Flame, Crown, Eye, Gem]
 
 // Tier → cores do sigil (briefing: shan especial, RPG titulos)
 const TIER_STYLES = [
@@ -24,6 +29,8 @@ export default function RankSigil({ tier = 0, badge, size = 40, animated = true 
   const style = TIER_STYLES[Math.min(tier, TIER_STYLES.length - 1)] || TIER_STYLES[0]
   const hasRays = style.rays > 0
   const isLegendary = tier >= 6
+  // Lucide icon central (substitui emoji)
+  const Icon = TIER_ICONS[Math.min(tier, TIER_ICONS.length - 1)] || Sprout
 
   return (
     <motion.span
@@ -73,10 +80,18 @@ export default function RankSigil({ tier = 0, badge, size = 40, animated = true 
         )}
       </svg>
 
-      {/* Badge emoji centro */}
-      <span className="relative z-10" style={{ fontSize: size * 0.45, filter: isLegendary ? 'drop-shadow(0 0 4px #fbbf24)' : undefined }}>
-        {badge}
-      </span>
+      {/* 🗡️ Icon Lucide central (SVG premium, no more emojis) */}
+      <Icon
+        size={size * 0.42}
+        strokeWidth={2.2}
+        className="relative z-10"
+        style={{
+          color: isLegendary ? '#fef3c7' : '#ffffff',
+          filter: isLegendary
+            ? `drop-shadow(0 0 6px ${style.ring})`
+            : style.glow ? `drop-shadow(0 0 3px ${style.ring})` : undefined,
+        }}
+      />
 
       {/* Glow pulse nos tiers altos */}
       {style.glow && animated && (

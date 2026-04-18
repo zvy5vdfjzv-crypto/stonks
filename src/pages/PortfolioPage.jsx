@@ -1,9 +1,11 @@
 // 🧠 FASE 5 — Portfolio refeito: Hero patrimony + sparklines inline + terminal log
 // Briefing 4.8: "Valor Total" em display-xl mono HERO. Historico como log de terminal.
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
-import { Wallet, ArrowUp, ArrowDown, Briefcase, Flame, Terminal } from 'lucide-react'
+import { Wallet, ArrowUp, ArrowDown, Briefcase, Flame, Terminal, Zap } from 'lucide-react'
+import { sound } from '../lib/sound'
+import { haptics } from '../lib/haptics'
 import AnimatedNumber from '../components/ui/AnimatedNumber'
 import SparkLine from '../components/market/SparkLine'
 import { useGame } from '../context/GameContext'
@@ -33,9 +35,23 @@ function formatTimestamp(ts) {
 }
 
 export default function PortfolioPage() {
-  const { balance, holdings, transactions, trends, getPortfolioValue, getTotalPnL, initialBalance } = useGame()
+  const { balance, holdings, transactions, trends, getPortfolioValue, getTotalPnL, initialBalance, sellAll, pendingTrades } = useGame()
   const { t } = useLang()
   const navigate = useNavigate()
+  const [liquidating, setLiquidating] = useState(null) // id being liquidated
+
+  const handlePanicSell = async (e, memeId, pnl) => {
+    e.stopPropagation()
+    setLiquidating(memeId)
+    const res = await sellAll(memeId)
+    if (res?.success) {
+      if (pnl >= 0) { sound.gain(); haptics.fire('success') }
+      else { sound.loss(); haptics.fire('loss') }
+    } else {
+      haptics.fire('denied')
+    }
+    setLiquidating(null)
+  }
 
   const portfolioValue = getPortfolioValue()
   const totalPnL = getTotalPnL()
@@ -191,6 +207,21 @@ export default function PortfolioPage() {
                     {isUp ? '+' : ''}{h.pnlPct.toFixed(2)}%
                   </p>
                 </div>
+
+                {/* ⚡ PANIC SELL — liquidar posicao inteira */}
+                <button
+                  onClick={(e) => handlePanicSell(e, h.trend.id, h.pnl)}
+                  disabled={liquidating === h.trend.id || pendingTrades > 0}
+                  title={isUp ? 'Realizar lucro' : 'Cortar perda'}
+                  className={`shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg border text-[10px] font-mono-stonks font-bold uppercase tracking-wider
+                    cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed
+                    ${isUp
+                      ? 'bg-money/10 text-money border-money/30 hover:bg-money/20'
+                      : 'bg-loss/10 text-loss border-loss/30 hover:bg-loss/20'}`}
+                >
+                  <Zap size={11} strokeWidth={2.5} />
+                  {liquidating === h.trend.id ? '...' : (isUp ? 'Lucro' : 'Sair')}
+                </button>
               </motion.div>
             )
           })}
