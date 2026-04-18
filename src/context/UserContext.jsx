@@ -3,41 +3,82 @@ import { supabase } from '../lib/supabase'
 
 const UserContext = createContext()
 
+// 🏰 CREATOR TITLES — flavor Warcraft/RPG em vez de emojis padrao
+// tier indice e usado pelo RankSigil pra escolher cor do anel
 const CREATOR_TITLES = [
-  { minScore: 0, title: 'Novato', badge: '🌱', color: 'text-text-muted' },
-  { minScore: 50, title: 'Observador', badge: '👀', color: 'text-blue' },
-  { minScore: 200, title: 'Trend Spotter', badge: '🔍', color: 'text-accent' },
-  { minScore: 500, title: 'Hype Builder', badge: '🔥', color: 'text-yellow' },
-  { minScore: 1500, title: 'Meme Lord', badge: '👑', color: 'text-pink' },
-  { minScore: 5000, title: 'Oraculo', badge: '🔮', color: 'text-green' },
-  { minScore: 15000, title: 'Warren Buffett dos Memes', badge: '💎', color: 'text-accent-light' },
+  { tier: 0, minScore: 0, title: 'Iniciado', badge: '🌿', color: 'text-text-muted' },
+  { tier: 1, minScore: 50, title: 'Vigilante', badge: '🗝️', color: 'text-text-secondary' },
+  { tier: 2, minScore: 200, title: 'Sentinela do Hype', badge: '🛡️', color: 'text-blue' },
+  { tier: 3, minScore: 500, title: 'Arauto Arcano', badge: '🔥', color: 'text-system' },
+  { tier: 4, minScore: 1500, title: 'Lorde dos Memes', badge: '👑', color: 'text-pink' },
+  { tier: 5, minScore: 5000, title: 'Oraculo Viral', badge: '🔮', color: 'text-money' },
+  { tier: 6, minScore: 15000, title: 'Arquiduque dos Virais', badge: '💎', color: 'text-yellow' },
 ]
 
+// 🏰 SHOP ITEMS — nomes fantasia + overlays mais ornados (vibe Warcraft)
+// svgOverlay em viewBox 100x100. Renderizado composicionalmente em UserAvatar.
 export const SHOP_ITEMS = [
-  // Hats
-  { id: 'hat-crown', name: 'Coroa de Ouro', category: 'hat', price: 500, emoji: '👑', svgOverlay: '<text x="50" y="18" text-anchor="middle" font-size="20">👑</text>', rarity: 'epic' },
-  { id: 'hat-cap', name: 'Bone Invertido', category: 'hat', price: 150, emoji: '🧢', svgOverlay: '<text x="50" y="18" text-anchor="middle" font-size="18">🧢</text>', rarity: 'common' },
-  { id: 'hat-tophat', name: 'Cartola Stonks', category: 'hat', price: 800, emoji: '🎩', svgOverlay: '<text x="50" y="15" text-anchor="middle" font-size="18">🎩</text>', rarity: 'legendary' },
-  { id: 'hat-fire', name: 'Cabeca em Chamas', category: 'hat', price: 1200, emoji: '🔥', svgOverlay: '<text x="50" y="12" text-anchor="middle" font-size="22">🔥</text>', rarity: 'legendary' },
-  { id: 'hat-rocket', name: 'Capacete Espacial', category: 'hat', price: 350, emoji: '🚀', svgOverlay: '<text x="50" y="14" text-anchor="middle" font-size="16">🚀</text>', rarity: 'rare' },
-  { id: 'hat-alien', name: 'Antena Alien', category: 'hat', price: 600, emoji: '👽', svgOverlay: '<text x="50" y="12" text-anchor="middle" font-size="16">👽</text>', rarity: 'epic' },
+  // ==== HATS / HELMOS ====
+  { id: 'hat-crown', name: 'Coroa do Ancião', category: 'hat', price: 500, emoji: '👑',
+    svgOverlay: '<g><polygon points="26,18 34,10 42,18 50,6 58,18 66,10 74,18 74,26 26,26" fill="#FFD700" stroke="#8B6914" stroke-width="1"/><circle cx="50" cy="10" r="2" fill="#FF3B6B"/><circle cx="34" cy="14" r="1.5" fill="#4A9EFF"/><circle cx="66" cy="14" r="1.5" fill="#00FF88"/><rect x="26" y="24" width="48" height="3" fill="#B8860B"/></g>',
+    rarity: 'epic' },
+  { id: 'hat-cap', name: 'Capuz do Arqueiro', category: 'hat', price: 150, emoji: '🧢',
+    svgOverlay: '<path d="M25,28 Q50,8 75,28 L80,32 L20,32 Z" fill="#2d4a2b" stroke="#1a2b19" stroke-width="1"/><path d="M35,14 Q50,10 65,14 L65,20 L35,20 Z" fill="#3d5a3b"/></g>',
+    rarity: 'common' },
+  { id: 'hat-tophat', name: 'Cartola do Barão', category: 'hat', price: 800, emoji: '🎩',
+    svgOverlay: '<g><rect x="30" y="6" width="40" height="20" fill="#0a0a0f" stroke="#FFD700" stroke-width="0.5"/><rect x="26" y="24" width="48" height="4" fill="#1a1a1a"/><rect x="30" y="14" width="40" height="3" fill="#C084FC" opacity="0.8"/><circle cx="50" cy="15.5" r="1.5" fill="#FFD700"/></g>',
+    rarity: 'legendary' },
+  { id: 'hat-fire', name: 'Elmo em Chamas', category: 'hat', price: 1200, emoji: '🔥',
+    svgOverlay: '<g><path d="M35,26 Q30,10 42,12 Q44,4 50,8 Q56,4 58,12 Q70,10 65,26 Z" fill="#FF6B1A" opacity="0.95"/><path d="M40,24 Q38,14 46,16 Q50,8 54,16 Q62,14 60,24 Z" fill="#FECA57" opacity="0.8"/><path d="M45,22 Q44,16 50,18 Q56,16 55,22 Z" fill="#fff" opacity="0.6"/></g>',
+    rarity: 'legendary' },
+  { id: 'hat-rocket', name: 'Capacete Estelar', category: 'hat', price: 350, emoji: '🚀',
+    svgOverlay: '<g><path d="M35,26 L35,18 Q35,10 50,6 Q65,10 65,18 L65,26 Z" fill="#c0c5cc" stroke="#4a4a5a" stroke-width="1"/><rect x="42" y="14" width="16" height="7" rx="3" fill="#4a9eff" opacity="0.7"/><circle cx="46" cy="17" r="1" fill="#fff" opacity="0.9"/><rect x="36" y="24" width="28" height="3" fill="#808898"/></g>',
+    rarity: 'rare' },
+  { id: 'hat-alien', name: 'Antena do Exilado', category: 'hat', price: 600, emoji: '👽',
+    svgOverlay: '<g><circle cx="38" cy="8" r="2" fill="#00FF88"/><circle cx="62" cy="8" r="2" fill="#00FF88"/><line x1="38" y1="10" x2="40" y2="24" stroke="#4a5564" stroke-width="1.5"/><line x1="62" y1="10" x2="60" y2="24" stroke="#4a5564" stroke-width="1.5"/><path d="M32,26 Q32,18 50,14 Q68,18 68,26 Z" fill="#2d4a3b" opacity="0.9"/></g>',
+    rarity: 'epic' },
 
-  // Glasses
-  { id: 'glasses-pixel', name: 'Oculos Pixel', category: 'glasses', price: 200, emoji: '🕶️', svgOverlay: '<rect x="30" y="37" width="40" height="10" rx="2" fill="#000" opacity="0.8"/><rect x="33" y="39" width="12" height="6" rx="1" fill="#39FF14" opacity="0.6"/><rect x="55" y="39" width="12" height="6" rx="1" fill="#39FF14" opacity="0.6"/>', rarity: 'common' },
-  { id: 'glasses-deal', name: 'Deal With It', category: 'glasses', price: 400, emoji: '😎', svgOverlay: '<rect x="28" y="37" width="44" height="10" rx="2" fill="#111"/><rect x="31" y="39" width="14" height="6" fill="#222"/><rect x="55" y="39" width="14" height="6" fill="#222"/>', rarity: 'rare' },
-  { id: 'glasses-laser', name: 'Olhos de Laser', category: 'glasses', price: 900, emoji: '🔴', svgOverlay: '<circle cx="38" cy="42" r="5" fill="#FF0000" opacity="0.7"/><circle cx="62" cy="42" r="5" fill="#FF0000" opacity="0.7"/><line x1="38" y1="42" x2="10" y2="60" stroke="#FF0000" stroke-width="2" opacity="0.5"/><line x1="62" y1="42" x2="90" y2="60" stroke="#FF0000" stroke-width="2" opacity="0.5"/>', rarity: 'epic' },
-  { id: 'glasses-heart', name: 'Oculos Coracao', category: 'glasses', price: 250, emoji: '💖', svgOverlay: '<text x="38" y="47" text-anchor="middle" font-size="14">💖</text><text x="62" y="47" text-anchor="middle" font-size="14">💖</text>', rarity: 'common' },
+  // ==== GLASSES / MASKS ====
+  { id: 'glasses-pixel', name: 'Visor Runico', category: 'glasses', price: 200, emoji: '🕶️',
+    svgOverlay: '<g><rect x="28" y="36" width="44" height="12" rx="2" fill="#000" opacity="0.9"/><rect x="31" y="38" width="14" height="8" rx="1" fill="#00FF88" opacity="0.7"/><rect x="55" y="38" width="14" height="8" rx="1" fill="#00FF88" opacity="0.7"/><line x1="45" y1="42" x2="55" y2="42" stroke="#222" stroke-width="2"/></g>',
+    rarity: 'common' },
+  { id: 'glasses-deal', name: 'Oculos do Rebel', category: 'glasses', price: 400, emoji: '😎',
+    svgOverlay: '<g><rect x="26" y="36" width="48" height="11" rx="2" fill="#0a0a0a"/><rect x="29" y="38" width="16" height="7" fill="#1a1a1a" stroke="#333" stroke-width="0.3"/><rect x="55" y="38" width="16" height="7" fill="#1a1a1a" stroke="#333" stroke-width="0.3"/><line x1="45" y1="41" x2="55" y2="41" stroke="#333" stroke-width="1.5"/></g>',
+    rarity: 'rare' },
+  { id: 'glasses-laser', name: 'Olhar Demoniaco', category: 'glasses', price: 900, emoji: '🔴',
+    svgOverlay: '<g><defs><radialGradient id="lz" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#ff3b3b"/><stop offset="100%" stop-color="#8b0000"/></radialGradient></defs><circle cx="38" cy="42" r="5" fill="url(#lz)"/><circle cx="62" cy="42" r="5" fill="url(#lz)"/><line x1="38" y1="42" x2="6" y2="62" stroke="#ff3b3b" stroke-width="1.5" opacity="0.7"/><line x1="62" y1="42" x2="94" y2="62" stroke="#ff3b3b" stroke-width="1.5" opacity="0.7"/><circle cx="38" cy="42" r="2" fill="#fff" opacity="0.9"/><circle cx="62" cy="42" r="2" fill="#fff" opacity="0.9"/></g>',
+    rarity: 'epic' },
+  { id: 'glasses-heart', name: 'Olhos Encantados', category: 'glasses', price: 250, emoji: '💖',
+    svgOverlay: '<g><path d="M38,38 l0,0 c-2,-3 -6,-3 -6,1 c0,4 6,7 6,7 s6,-3 6,-7 c0,-4 -4,-4 -6,-1 Z" fill="#FF6B9D"/><path d="M62,38 l0,0 c-2,-3 -6,-3 -6,1 c0,4 6,7 6,7 s6,-3 6,-7 c0,-4 -4,-4 -6,-1 Z" fill="#FF6B9D"/></g>',
+    rarity: 'common' },
 
-  // Effects
-  { id: 'effect-glow', name: 'Aura Neon', category: 'effect', price: 700, emoji: '✨', svgOverlay: '<circle cx="50" cy="50" r="45" fill="none" stroke="#6C5CE7" stroke-width="3" opacity="0.4"/><circle cx="50" cy="50" r="48" fill="none" stroke="#A29BFE" stroke-width="1" opacity="0.3"/>', rarity: 'rare' },
-  { id: 'effect-diamond', name: 'Chuva de Diamantes', category: 'effect', price: 1500, emoji: '💎', svgOverlay: '<text x="15" y="15" font-size="10" opacity="0.6">💎</text><text x="80" y="20" font-size="8" opacity="0.5">💎</text><text x="25" y="85" font-size="9" opacity="0.5">💎</text><text x="78" y="80" font-size="10" opacity="0.6">💎</text>', rarity: 'legendary' },
-  { id: 'effect-money', name: 'Money Rain', category: 'effect', price: 1000, emoji: '💸', svgOverlay: '<text x="10" y="12" font-size="10" opacity="0.5">💸</text><text x="75" y="18" font-size="8" opacity="0.4">💵</text><text x="20" y="90" font-size="9" opacity="0.4">💰</text><text x="82" y="85" font-size="10" opacity="0.5">💸</text>', rarity: 'epic' },
-  { id: 'effect-stars', name: 'Estrelas', category: 'effect', price: 300, emoji: '⭐', svgOverlay: '<text x="12" y="18" font-size="8" opacity="0.5">⭐</text><text x="85" y="15" font-size="10" opacity="0.6">⭐</text><text x="8" y="82" font-size="9" opacity="0.4">⭐</text><text x="88" y="88" font-size="8" opacity="0.5">⭐</text>', rarity: 'common' },
+  // ==== EFFECTS / AURAS ====
+  { id: 'effect-glow', name: 'Aura Arcana', category: 'effect', price: 700, emoji: '✨',
+    svgOverlay: '<g><circle cx="50" cy="50" r="46" fill="none" stroke="#7C5CFF" stroke-width="2.5" opacity="0.5" stroke-dasharray="2 3"/><circle cx="50" cy="50" r="49" fill="none" stroke="#A28BFF" stroke-width="1" opacity="0.4"/></g>',
+    rarity: 'rare' },
+  { id: 'effect-diamond', name: 'Chuva de Mithril', category: 'effect', price: 1500, emoji: '💎',
+    svgOverlay: '<g><text x="14" y="16" font-size="11" fill="#4a9eff" opacity="0.7">◆</text><text x="82" y="22" font-size="9" fill="#7c5cff" opacity="0.6">◆</text><text x="24" y="86" font-size="10" fill="#4a9eff" opacity="0.6">◆</text><text x="80" y="82" font-size="11" fill="#a0aed0" opacity="0.7">◆</text><text x="8" y="50" font-size="8" fill="#7c5cff" opacity="0.5">◆</text><text x="90" y="55" font-size="8" fill="#4a9eff" opacity="0.5">◆</text></g>',
+    rarity: 'legendary' },
+  { id: 'effect-money', name: 'Chuva de Ouro', category: 'effect', price: 1000, emoji: '💸',
+    svgOverlay: '<g><circle cx="14" cy="14" r="3" fill="#FFD700" opacity="0.6" stroke="#B8860B" stroke-width="0.5"/><circle cx="82" cy="20" r="2.5" fill="#FFD700" opacity="0.5"/><circle cx="20" cy="86" r="3" fill="#FFD700" opacity="0.55"/><circle cx="85" cy="80" r="3.5" fill="#FFD700" opacity="0.65"/><circle cx="8" cy="50" r="2" fill="#FFD700" opacity="0.45"/></g>',
+    rarity: 'epic' },
+  { id: 'effect-stars', name: 'Estrelas Ancestrais', category: 'effect', price: 300, emoji: '⭐',
+    svgOverlay: '<g><polygon points="14,18 15,14 17,18 14,20" fill="#FECA57" opacity="0.7"/><polygon points="85,14 86,10 88,14 86,17" fill="#FECA57" opacity="0.8"/><polygon points="8,82 9,78 11,82 9,85" fill="#FECA57" opacity="0.6"/><polygon points="88,86 89,82 91,86 89,89" fill="#FECA57" opacity="0.7"/></g>',
+    rarity: 'common' },
 
-  // Frames
-  { id: 'frame-gold', name: 'Moldura Dourada', category: 'frame', price: 2000, emoji: '🖼️', svgOverlay: '<rect x="2" y="2" width="96" height="96" rx="18" fill="none" stroke="#FFD700" stroke-width="4"/>', rarity: 'legendary' },
-  { id: 'frame-neon', name: 'Moldura Neon', category: 'frame', price: 600, emoji: '💜', svgOverlay: '<rect x="2" y="2" width="96" height="96" rx="18" fill="none" stroke="#6C5CE7" stroke-width="3" opacity="0.8"/>', rarity: 'rare' },
-  { id: 'frame-fire', name: 'Moldura Fire', category: 'frame', price: 1000, emoji: '🔥', svgOverlay: '<rect x="2" y="2" width="96" height="96" rx="18" fill="none" stroke="#FF6B6B" stroke-width="3"/><rect x="4" y="4" width="92" height="92" rx="16" fill="none" stroke="#FECA57" stroke-width="1" opacity="0.5"/>', rarity: 'epic' },
+  // ==== FRAMES / BORDAS ====
+  { id: 'frame-gold', name: 'Moldura Real', category: 'frame', price: 2000, emoji: '👑',
+    svgOverlay: '<g><rect x="1.5" y="1.5" width="97" height="97" rx="14" fill="none" stroke="#FFD700" stroke-width="3.5"/><rect x="4" y="4" width="92" height="92" rx="12" fill="none" stroke="#FEF3C7" stroke-width="1" opacity="0.6"/><circle cx="50" cy="2" r="3" fill="#FFD700" stroke="#8B6914" stroke-width="0.5"/><circle cx="50" cy="98" r="3" fill="#FFD700" stroke="#8B6914" stroke-width="0.5"/></g>',
+    rarity: 'legendary' },
+  { id: 'frame-neon', name: 'Moldura Arcana', category: 'frame', price: 600, emoji: '🔮',
+    svgOverlay: '<g><rect x="2" y="2" width="96" height="96" rx="14" fill="none" stroke="#7C5CFF" stroke-width="3" opacity="0.9"/><rect x="4" y="4" width="92" height="92" rx="12" fill="none" stroke="#A28BFF" stroke-width="0.8" opacity="0.6" stroke-dasharray="3 2"/></g>',
+    rarity: 'rare' },
+  { id: 'frame-fire', name: 'Moldura Infernal', category: 'frame', price: 1000, emoji: '🔥',
+    svgOverlay: '<g><rect x="1.5" y="1.5" width="97" height="97" rx="14" fill="none" stroke="#FF6B1A" stroke-width="3.5"/><rect x="4" y="4" width="92" height="92" rx="12" fill="none" stroke="#FECA57" stroke-width="1.2" opacity="0.7"/><circle cx="50" cy="1" r="2" fill="#FF6B1A"/><circle cx="50" cy="99" r="2" fill="#FF6B1A"/><circle cx="1" cy="50" r="2" fill="#FF6B1A"/><circle cx="99" cy="50" r="2" fill="#FF6B1A"/></g>',
+    rarity: 'epic' },
+  { id: 'frame-mythic', name: 'Moldura Mítica', category: 'frame', price: 5000, emoji: '💠',
+    svgOverlay: '<g><rect x="1" y="1" width="98" height="98" rx="14" fill="none" stroke="#FF2D6B" stroke-width="3"/><rect x="3.5" y="3.5" width="93" height="93" rx="12" fill="none" stroke="#ff6ba8" stroke-width="1" opacity="0.7" stroke-dasharray="2 1"/><polygon points="50,0 52,4 50,8 48,4" fill="#FF2D6B"/><polygon points="50,92 52,96 50,100 48,96" fill="#FF2D6B"/></g>',
+    rarity: 'mythic' },
 ]
 
 export const VERIFICATION_TYPES = {

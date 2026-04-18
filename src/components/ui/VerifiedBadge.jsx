@@ -22,46 +22,89 @@ function Badge({ type, size }) {
   return null
 }
 
-// STONKS owner badge - animated star with rotating glow
+// 🏆 STONKS owner badge — DOPAMINERGICO LVL MAX
+// Estrela dupla + rays pulsantes + conic rotation + shine travel + hue shift
 function StonksBadge({ size }) {
   return (
     <motion.span
       className="inline-flex items-center justify-center shrink-0 relative"
-      style={{ width: size, height: size }}
-      title="STONKS Official"
-      whileHover={{ scale: 1.3, rotate: 15 }}
+      style={{ width: size * 1.15, height: size * 1.15 }}
+      title="STONKS Official — Admin"
+      whileHover={{ scale: 1.4, rotate: 20 }}
+      animate={{ rotate: [0, -2, 2, 0] }}
+      transition={{ rotate: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
     >
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Rays explodindo atras da estrela */}
+      <motion.span
+        className="absolute inset-[-40%] pointer-events-none"
+        animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <svg width="100%" height="100%" viewBox="0 0 48 48" className="absolute inset-0">
+          {Array.from({ length: 12 }).map((_, i) => {
+            const angle = (i / 12) * 360
+            return (
+              <g key={i} transform={`rotate(${angle} 24 24)`}>
+                <polygon points="24,0 25.5,4 22.5,4" fill="#C084FC" opacity="0.9" />
+              </g>
+            )
+          })}
+        </svg>
+      </motion.span>
+
+      {/* Conic gradient rotation (trail) */}
+      <motion.span
+        className="absolute inset-[-8%] pointer-events-none rounded-full"
+        style={{
+          background: 'conic-gradient(from 0deg, transparent, #C084FC, transparent, #00FF88, transparent, #FF6B1A, transparent, #C084FC, transparent)',
+          mixBlendMode: 'screen',
+          opacity: 0.55,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+      />
+
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="relative z-10">
         <defs>
           <linearGradient id="sg1" x1="0" y1="0" x2="24" y2="24">
-            <stop offset="0%" stopColor="#C084FC" />
-            <stop offset="50%" stopColor="#7C3AED" />
+            <stop offset="0%" stopColor="#F5D0FE" />
+            <stop offset="40%" stopColor="#C084FC" />
+            <stop offset="75%" stopColor="#7C3AED" />
             <stop offset="100%" stopColor="#4C1D95" />
           </linearGradient>
-          <linearGradient id="sg2" x1="20" y1="0" x2="4" y2="20">
-            <stop offset="0%" stopColor="#fff" stopOpacity="0.5" />
-            <stop offset="60%" stopColor="#fff" stopOpacity="0" />
+          <linearGradient id="sg2" x1="0" y1="0" x2="24" y2="24">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.85" />
+            <stop offset="45%" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
-          <filter id="sg">
-            <feGaussianBlur stdDeviation="1.5" result="b" />
+          <filter id="sg-glow">
+            <feGaussianBlur stdDeviation="0.8" result="b" />
             <feComposite in="SourceGraphic" in2="b" operator="over" />
           </filter>
         </defs>
-        {/* Outer glow ring */}
-        <circle cx="12" cy="12" r="11.5" stroke="#C084FC" strokeWidth="0.5" fill="none" opacity="0.4" />
-        {/* Star shape */}
-        <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8" fill="url(#sg1)" filter="url(#sg)" />
+
+        {/* Outer ring */}
+        <circle cx="12" cy="12" r="11.5" stroke="#C084FC" strokeWidth="0.6" fill="none" opacity="0.6" />
+
+        {/* Second star (rotated) — cria efeito de "flor" */}
+        <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8"
+          fill="#4C1D95" opacity="0.5" transform="rotate(36 12 12)" />
+
+        {/* Main star */}
+        <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8" fill="url(#sg1)" filter="url(#sg-glow)" />
+
         {/* Shine overlay */}
         <polygon points="12,1 15,8 23,8 17,13 19,21 12,16 5,21 7,13 1,8 9,8" fill="url(#sg2)" />
+
         {/* S letter */}
         <text x="12" y="12.5" textAnchor="middle" fontSize="9" fill="white" fontWeight="900" dominantBaseline="central" fontFamily="system-ui">S</text>
       </svg>
-      {/* Rotating conic gradient */}
+
+      {/* Shine travel — pequeno brilho que passa pela estrela */}
       <motion.span
-        className="absolute inset-[-2px] pointer-events-none rounded-full"
-        style={{ background: 'conic-gradient(from 0deg, transparent, #C084FC30, transparent, #7C3AED30, transparent)', mixBlendMode: 'screen' }}
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
+        className="absolute w-1.5 h-1.5 rounded-full bg-white pointer-events-none"
+        style={{ top: '20%', left: '20%', boxShadow: '0 0 8px #fff' }}
+        animate={{ x: [0, size * 0.5, 0], y: [0, size * 0.5, 0], opacity: [0, 1, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
       />
     </motion.span>
   )

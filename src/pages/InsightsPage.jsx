@@ -3,11 +3,13 @@ import { motion } from 'framer-motion'
 import { BarChart2, Eye, Award, Coins, Grid3X3, Trophy, Camera, Pencil, Globe, Search, Palette, FileText, Check } from 'lucide-react'
 
 const ACHIEVEMENT_ICONS = { Eye, Search, BarChart2, Palette, FileText }
-import { useUser, getCreatorTitle } from '../context/UserContext'
+import { useUser, getCreatorTitle, SHOP_ITEMS } from '../context/UserContext'
 import { useGame } from '../context/GameContext'
 import { useSocial } from '../context/SocialContext'
 import Badge from '../components/ui/Badge'
 import VerifiedBadge from '../components/ui/VerifiedBadge'
+import RankSigil from '../components/ui/RankSigil'
+import UserAvatar from '../components/ui/UserAvatar'
 import EditProfileModal from '../components/profile/EditProfileModal'
 
 function SocialIcon({ type, size = 14, className = '' }) {
@@ -70,7 +72,6 @@ export default function InsightsPage() {
 
   if (!user) return null
 
-  const isUrl = typeof user.avatar === 'string' && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))
   const hasSocials = Object.values(user.socialLinks || {}).some(v => v)
 
   return (
@@ -78,28 +79,24 @@ export default function InsightsPage() {
       {/* Profile header */}
       <div className="px-4 pt-5 pb-4">
         <div className="flex items-start gap-4">
-          {/* Avatar - clicavel */}
+          {/* 🧠 Avatar com items EQUIPADOS — hat, glasses, effect, frame visiveis */}
           <div className="relative group cursor-pointer shrink-0" onClick={() => setEditOpen(true)}>
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border group-hover:border-accent/50 transition-colors">
-              {isUrl ? (
-                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-accent/20 flex items-center justify-center text-3xl">{user.avatar}</div>
-              )}
-            </div>
+            <UserAvatar size={80} className="rounded-full border-2 border-border group-hover:border-accent/50 transition-colors" />
             <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <Camera size={16} className="text-white" />
             </div>
           </div>
 
-          {/* 🧠 Nome colorido por nivel — status publico permanente (briefing 4.9) */}
+          {/* 🧠 Nome colorido por nivel + RankSigil RPG */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h1 className={`font-bold text-lg ${user.accountType === 'owner' ? 'text-accent-light' : creatorTitle.color}`}>
                 {user.displayName}
               </h1>
               <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={20} />
-              {user.accountType !== 'owner' && <span className="text-sm">{creatorTitle.badge}</span>}
+              {user.accountType !== 'owner' && (
+                <RankSigil tier={creatorTitle.tier} badge={creatorTitle.badge} size={24} />
+              )}
             </div>
             <div className="flex items-center gap-1.5">
               <p className="text-accent text-sm">{user.handle}</p>
@@ -149,17 +146,29 @@ export default function InsightsPage() {
           </div>
         )}
 
-        {/* Creator title progress - hidden for owner */}
+        {/* 🏰 Creator title progress — RankSigil atual e proximo */}
         {user.accountType !== 'owner' && <div className="mt-4 bg-surface border border-border rounded-xl p-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className={`text-xs font-semibold ${creatorTitle.color}`}>{creatorTitle.badge} {creatorTitle.title}</span>
-            {nextTitle && <span className="text-text-muted text-[10px]">{nextTitle.badge} {nextTitle.title}</span>}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <RankSigil tier={creatorTitle.tier} badge={creatorTitle.badge} size={28} />
+              <span className={`text-xs font-mono-stonks font-bold uppercase tracking-wider ${creatorTitle.color}`}>
+                {creatorTitle.title}
+              </span>
+            </div>
+            {nextTitle && (
+              <div className="flex items-center gap-1.5 opacity-50">
+                <span className="text-text-muted text-[10px] font-mono-stonks uppercase">proximo:</span>
+                <RankSigil tier={nextTitle.tier} badge={nextTitle.badge} size={20} animated={false} />
+              </div>
+            )}
           </div>
           <div className="h-1.5 bg-surface-hover rounded-full overflow-hidden">
             <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(progressToNext, 100)}%` }}
-              transition={{ duration: 1 }} className="h-full bg-accent rounded-full" />
+              transition={{ duration: 1 }} className="h-full bg-money rounded-full" style={{ boxShadow: '0 0 8px #00ff8888' }} />
           </div>
-          <p className="text-text-muted text-[9px] mt-1">{user.creatorScore} / {nextTitle?.minScore || '∞'} pts</p>
+          <p className="text-text-muted text-[10px] mt-1 font-mono-stonks tabular-nums">
+            {user.creatorScore.toLocaleString()} / {nextTitle?.minScore?.toLocaleString() || '∞'} pts
+          </p>
         </div>}
 
         {/* Edit profile button */}
@@ -298,13 +307,11 @@ export default function InsightsPage() {
                       : isNext
                         ? 'bg-surface border-accent/30 shadow-[0_0_16px_rgba(124,92,255,0.1)]'
                         : 'bg-surface/50 border-border/30'}`}>
-                  {/* Badge grande — silhueta filtrada quando bloqueado */}
-                  <div className="relative shrink-0">
-                    <span className={`text-3xl block transition-all ${unlocked ? '' : 'grayscale opacity-30 contrast-50'}`}>
-                      {title.badge}
-                    </span>
+                  {/* 🏰 RankSigil RPG — bloqueado = grayscale opaco */}
+                  <div className={`relative shrink-0 transition-all ${unlocked ? '' : 'grayscale opacity-30 contrast-75'}`}>
+                    <RankSigil tier={title.tier} badge={title.badge} size={44} animated={unlocked} />
                     {unlocked && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-money flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-money flex items-center justify-center z-20">
                         <Check size={9} className="text-[#0a0a0f]" strokeWidth={4} />
                       </span>
                     )}
