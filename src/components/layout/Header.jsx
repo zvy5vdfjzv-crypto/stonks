@@ -46,27 +46,28 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Saldo com numeros rolantes + indicador de variacao */}
+          {/* 🧠 WALLET HERO — mono grande + seta direcao. Elemento mais proeminente do header.
+             Troca pill generico por display terminal-style (Bloomberg vibe). */}
           <motion.div
-            key="balance-pill"
-            className="flex items-center gap-1.5 bg-surface rounded-xl px-3 py-1.5 border border-border"
+            key="balance-hero"
+            className="flex items-center gap-2 bg-gradient-to-br from-[#14141c] to-[#0a0a0f] rounded-lg px-3 py-1.5 border border-money/20"
           >
-            <Wallet size={13} className="text-green" />
-            <span className="text-green font-semibold text-xs">S$</span>
-            <AnimatedNumber value={balance} className="text-text-primary font-semibold text-xs" />
-            {balanceDelta !== 0 && (
-              <AnimatePresence>
+            <Wallet size={13} className="text-money" />
+            <span className="text-money font-mono-stonks text-[10px] uppercase tracking-wider">S$</span>
+            <AnimatedNumber value={balance} className="text-text-primary font-mono-stonks font-bold text-sm tabular-nums" />
+            <AnimatePresence mode="wait">
+              {balanceDelta !== 0 && (
                 <motion.span
                   key={balanceDelta}
-                  initial={{ opacity: 0, y: balanceDelta > 0 ? 4 : -4 }}
+                  initial={{ opacity: 0, y: balanceDelta > 0 ? 6 : -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`text-[9px] font-bold flex items-center ${balanceDelta > 0 ? 'text-green' : 'text-red'}`}
+                  className={`text-[9px] font-bold font-mono-stonks flex items-center ${balanceDelta > 0 ? 'text-money' : 'text-loss'}`}
                 >
-                  {balanceDelta > 0 ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+                  {balanceDelta > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                 </motion.span>
-              </AnimatePresence>
-            )}
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Search */}

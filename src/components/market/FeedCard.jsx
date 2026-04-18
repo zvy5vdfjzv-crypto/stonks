@@ -151,30 +151,32 @@ export default function FeedCard({ trend, onOpenStats }) {
       <div className="px-3 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* BANCAR — icone Lucide em vez de emoji */}
+            {/* 🔥 BANCAR — CTA hero. Mono ALL CAPS + money glow quando afford.
+               Este e o momento-chave do app: botao mais satisfatorio do produto. */}
             <motion.button
-              whileTap={{ scale: 0.8 }}
+              whileHover={trend.price > balance ? {} : { scale: 1.03 }}
+              whileTap={{ scale: 0.94 }}
               onClick={handleBancar}
               disabled={trend.price > balance}
-              className="cursor-pointer disabled:opacity-30"
+              className="cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all border
+              <div className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider border transition-all
                 ${holding
-                  ? 'bg-green/15 text-green border-green/25'
-                  : 'bg-surface-hover text-text-primary border-border hover:bg-green/10 hover:border-green/25 hover:text-green'}`}>
-                <TrendingUp size={13} /> Bancar
+                  ? 'bg-money/15 text-money border-money/40 glow-money'
+                  : 'bg-money text-[#0a0a0f] border-money hover:bg-money-dim hover:glow-money'}`}>
+                <TrendingUp size={13} strokeWidth={2.5} /> Bancar
               </div>
             </motion.button>
 
-            {/* Sell — icone Lucide */}
+            {/* Sell — peso secundario, mono mas sem glow */}
             <motion.button
-              whileTap={{ scale: 0.8 }}
+              whileTap={{ scale: 0.94 }}
               onClick={handleSell}
               disabled={!holding}
-              className="cursor-pointer disabled:opacity-20"
+              className="cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
             >
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-hover border border-border text-[11px] font-bold text-text-secondary hover:text-red hover:border-red/25 hover:bg-red/10 transition-all">
-                <TrendingDown size={13} /> Vender
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-hover border border-border text-[11px] font-mono-stonks font-bold uppercase tracking-wider text-text-secondary hover:text-loss hover:border-loss/30 hover:bg-loss/10 transition-all">
+                <TrendingDown size={13} strokeWidth={2.5} /> Vender
               </div>
             </motion.button>
 

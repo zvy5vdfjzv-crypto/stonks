@@ -159,10 +159,11 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
               )}
 
               <Button
-                variant={activeTab === 'buy' ? 'green' : 'red'}
+                variant={activeTab === 'buy' ? 'money' : 'red'}
+                haptic
                 onClick={handleTrade}
                 disabled={activeTab === 'buy' ? !canBuy : !canSell}
-                className="w-full py-3"
+                className="w-full py-3.5"
               >
                 {t(`trade.${activeTab}`)} {qty > 0 ? `${qty}x ${trend.ticker}` : ''}
               </Button>

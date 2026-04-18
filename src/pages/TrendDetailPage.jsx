@@ -285,14 +285,15 @@ export default function TrendDetailPage() {
       )}
 
       <div className="flex gap-3">
-        <Button variant="green" onClick={() => openTrade('buy')} className="flex-1 py-3">
+        <Button variant="money" haptic onClick={() => openTrade('buy')} className="flex-1 py-3.5">
           {t('trade.buy')} {trend.ticker}
         </Button>
         <Button
           variant="red"
+          haptic
           onClick={() => openTrade('sell')}
           disabled={!holding}
-          className="flex-1 py-3"
+          className="flex-1 py-3.5"
         >
           {t('trade.sell')} {trend.ticker}
         </Button>

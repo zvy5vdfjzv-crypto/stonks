@@ -152,12 +152,13 @@ export default function TrendCard({ trend, index, onOpenStats }) {
         <button
           onClick={handleBuy}
           disabled={qty * trend.price > balance}
-          className="flex-1 bg-green hover:bg-green/80 disabled:opacity-30 text-white text-xs font-semibold
+          className="flex-1 bg-money hover:bg-money-dim disabled:opacity-30 text-[#0a0a0f]
+            font-mono-stonks font-bold uppercase tracking-wider text-[11px]
             py-2 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1.5
-            disabled:cursor-not-allowed"
+            disabled:cursor-not-allowed hover:glow-money"
         >
-          <ShoppingCart size={13} />
-          {t('trade.buy')} · S${(qty * trend.price).toFixed(0)}
+          <ShoppingCart size={13} strokeWidth={2.5} />
+          {t('trade.buy')} · <span className="tabular-nums">S${(qty * trend.price).toFixed(0)}</span>
         </button>
 
         <button
