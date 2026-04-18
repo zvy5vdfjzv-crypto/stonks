@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarChart2, MoreHorizontal, Send } from 'lucide-react'
+import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarChart2, MoreHorizontal, Send, Flame } from 'lucide-react'
 import CoinRain from '../ui/CoinRain'
+import AnimatedNumber from '../ui/AnimatedNumber'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -67,10 +68,23 @@ export default function FeedCard({ trend, onOpenStats }) {
   }
 
   const topBancadores = trend.socialProof?.topBancadores || []
-  const bancadas = trend.socialProof?.bancadas || 0
+  const baseBancadas = trend.socialProof?.bancadas || 0
+
+  // 🧠 NEUROMARKETING: Contador social que incrementa em tempo real.
+  // Prova social dinamica — sempre parece que "mais gente ta entrando agora".
+  const [liveBancadas, setLiveBancadas] = useState(baseBancadas)
+  useEffect(() => {
+    if (baseBancadas === 0) return
+    const interval = setInterval(() => {
+      // Incremento proporcional a volatilidade — hot pumps ganham gente rapido
+      const rate = Math.abs(trend.change24h) > 15 ? 3 : Math.abs(trend.change24h) > 5 ? 1 : 0.5
+      setLiveBancadas(prev => prev + Math.max(1, Math.floor(Math.random() * rate * 3)))
+    }, 4000 + Math.random() * 4000)
+    return () => clearInterval(interval)
+  }, [baseBancadas, trend.change24h])
 
   return (
-    <article className={`border-b border-border/40 ${isHotPump ? 'relative' : ''}`}>
+    <article className={`border-b border-border/40 transition-all hover:bg-surface/30 ${isHotPump ? 'relative' : ''}`}>
       {/* 🧠 NEUROMARKETING: Chuva de moedas ao vender com lucro */}
       <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
       {/* Header - user/source info */}
@@ -93,9 +107,9 @@ export default function FeedCard({ trend, onOpenStats }) {
       </div>
 
       {/* Image - tap to like */}
-      {/* 🧠 NEUROMARKETING: Borda neon verde pulsante em hot pumps — impossivel ignorar */}
-      <div className={`relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden
-        ${isHotPump ? 'ring-2 ring-green/60 shadow-[0_0_20px_#00D68F40] animate-pulse' : ''}`}
+      {/* 🧠 FOMO border — hype orange (laranja de urgencia) pulsante em hot pumps */}
+      <div className={`relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden transition-all
+        ${isHotPump ? 'ring-2 ring-hype/70 glow-hype' : ''}`}
         onDoubleClick={() => { setLiked(true); handleBancar() }}>
         <img
           src={trend.thumbnail}
@@ -104,13 +118,13 @@ export default function FeedCard({ trend, onOpenStats }) {
           loading="lazy"
           onError={(e) => { e.target.style.display = 'none' }}
         />
-        {/* Price overlay - bottom right */}
-        <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
-          <p className={`font-bold text-sm ${isPositive ? 'text-green' : 'text-red'}`}>
+        {/* Price HERO overlay — mono grande, chunky seta */}
+        <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10">
+          <p className={`font-mono-stonks font-bold text-lg tabular-nums ${isPositive ? 'text-money' : 'text-loss'}`}>
             S$ {trend.price.toFixed(2)}
           </p>
-          <div className={`flex items-center gap-0.5 text-[10px] font-semibold ${isPositive ? 'text-green' : 'text-red'}`}>
-            {isPositive ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+          <div className={`flex items-center gap-1 text-[11px] font-mono-stonks font-bold tabular-nums ${isPositive ? 'text-money' : 'text-loss'}`}>
+            <span className="text-base leading-none">{isPositive ? '▲' : '▼'}</span>
             {isPositive ? '+' : ''}{trend.change24h.toFixed(2)}%
           </div>
         </div>
@@ -120,14 +134,15 @@ export default function FeedCard({ trend, onOpenStats }) {
           <div className="bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-0.5">
             <span className="text-white text-[10px] font-semibold">{t(`categories.${trend.category}`)}</span>
           </div>
-          {/* 🧠 NEUROMARKETING: FOMO badge — urgencia visual para nao perder a oportunidade */}
+          {/* 🔥 FOMO badge — hype orange pulsando, peso visual total */}
           {isHotPump && (
             <motion.div
-              animate={{ scale: [1, 1.08, 1] }}
-              transition={{ repeat: Infinity, duration: 1.2 }}
-              className="bg-green/90 backdrop-blur-sm rounded-full px-2.5 py-0.5 shadow-[0_0_15px_#00D68F]"
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ repeat: Infinity, duration: 1.4 }}
+              className="bg-hype backdrop-blur-sm rounded-full px-2.5 py-0.5 glow-hype flex items-center gap-1"
             >
-              <span className="text-white text-[10px] font-bold">🔥 HOT PUMP</span>
+              <Flame size={10} strokeWidth={2.5} className="text-white" />
+              <span className="text-white text-[10px] font-mono-stonks font-bold uppercase tracking-wider">Hot Pump</span>
             </motion.div>
           )}
         </div>
@@ -296,12 +311,21 @@ export default function FeedCard({ trend, onOpenStats }) {
           )}
         </AnimatePresence>
 
-        {/* Social proof */}
+        {/* 🧠 Social proof — contador mono incrementando em tempo real */}
         <div className="mt-1.5">
           {topBancadores.length > 0 && (
-            <p className="text-text-primary text-xs">
+            <p className="text-text-primary text-xs flex items-center gap-1 flex-wrap">
               <span className="font-semibold">Bancado por {topBancadores[0]}</span>
-              {bancadas > 1 && <span className="text-text-secondary"> e <span className="font-semibold">outras {bancadas.toLocaleString()} pessoas</span></span>}
+              {liveBancadas > 1 && (
+                <span className="text-text-secondary">
+                  {' '}e{' '}
+                  <AnimatedNumber
+                    value={liveBancadas}
+                    className="font-mono-stonks font-bold text-money tabular-nums"
+                  />
+                  <span className="font-semibold"> pessoas bancaram</span>
+                </span>
+              )}
             </p>
           )}
           {holding && (

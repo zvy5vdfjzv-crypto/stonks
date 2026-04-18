@@ -160,9 +160,143 @@ html.light {
   animation: shimmer 2.4s linear infinite;
 }
 
-/* Rotacao de borda conic — pra itens lendarios (Fase 3) */
+/* Rotacao de borda conic — itens lendarios */
 @keyframes legendary-rotate {
   to { transform: rotate(360deg); }
+}
+
+/* ================================================================
+   🎴 SISTEMA DE RARIDADE — briefing 4.5
+   Raridade precisa ser SENTIDA em 0.2s sem ler texto.
+   ================================================================ */
+
+/* Comum: card neutro, nada especial */
+.rarity-common {
+  border-color: var(--color-rarity-common);
+  border-width: 1px;
+}
+
+/* Raro: borda azul sutil */
+.rarity-rare {
+  border: 1px solid color-mix(in srgb, var(--color-rarity-rare) 50%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rarity-rare) 15%, transparent);
+}
+
+/* Epico: borda roxa + shimmer lento no fundo */
+.rarity-epic {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--color-rarity-epic) 50%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-rarity-epic) 15%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-rarity-epic) 15%, transparent);
+}
+.rarity-epic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg,
+    transparent 30%,
+    color-mix(in srgb, var(--color-rarity-epic) 18%, transparent) 50%,
+    transparent 70%);
+  background-size: 250% 100%;
+  animation: shimmer 3.5s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.rarity-epic > * { position: relative; z-index: 1; }
+
+/* Lendario: borda conic dourada rotativa + glow + shimmer */
+.rarity-legendary {
+  position: relative;
+  background-color: var(--bg-elevated);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-rarity-legendary) 35%, transparent),
+    0 0 48px color-mix(in srgb, var(--color-rarity-legendary) 15%, transparent);
+}
+.rarity-legendary::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    #ffb800,
+    #ffd75e,
+    #ff9b00,
+    #ffb800,
+    #ffd75e,
+    #ff9b00,
+    #ffb800
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: legendary-rotate 4s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.rarity-legendary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 0%,
+    color-mix(in srgb, var(--color-rarity-legendary) 12%, transparent),
+    transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.rarity-legendary > * { position: relative; z-index: 1; }
+
+/* Mitico: tudo do lendario + rosa-choque + tremida sutil periodica */
+@keyframes mythic-shake {
+  0%, 90%, 100% { transform: translateX(0); }
+  92% { transform: translateX(-1px) rotate(-0.3deg); }
+  94% { transform: translateX(1px) rotate(0.3deg); }
+  96% { transform: translateX(-1px); }
+  98% { transform: translateX(1px); }
+}
+.rarity-mythic {
+  position: relative;
+  background-color: var(--bg-elevated);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-rarity-mythic) 45%, transparent),
+    0 0 72px color-mix(in srgb, var(--color-rarity-mythic) 25%, transparent);
+  animation: mythic-shake 5s ease-in-out infinite;
+}
+.rarity-mythic::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from 0deg,
+    #ff2d6b, #ff6ba8, #ff0055, #ff2d6b, #ff6ba8, #ff0055, #ff2d6b);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: legendary-rotate 3s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.rarity-mythic > * { position: relative; z-index: 1; }
+
+/* Pontos flutuantes — decoracao extra pra lendario */
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translateY(-40px) scale(0.6); opacity: 0; }
+}
+.rarity-particle {
+  position: absolute;
+  animation: float-up 3s ease-in-out infinite;
+  pointer-events: none;
+  font-size: 10px;
 }
 
 /* ================================================================

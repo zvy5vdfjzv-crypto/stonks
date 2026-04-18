@@ -14,8 +14,16 @@ const CATEGORIES = [
   { id: 'frame', label: 'Molduras', emoji: '🖼️' },
 ]
 
-const rarityBadgeColor = { common: 'neutral', rare: 'blue', epic: 'accent', legendary: 'yellow' }
-const rarityLabel = { common: 'Comum', rare: 'Raro', epic: 'Epico', legendary: 'Lendario' }
+const rarityBadgeColor = { common: 'neutral', rare: 'blue', epic: 'accent', legendary: 'yellow', mythic: 'pink' }
+const rarityLabel = { common: 'Comum', rare: 'Raro', epic: 'Epico', legendary: 'Lendario', mythic: 'Mitico' }
+// 🧠 Classes CSS por raridade — briefing 4.5: "sentida em 0.2s sem ler texto"
+const rarityCardClass = {
+  common: 'rarity-common',
+  rare: 'rarity-rare',
+  epic: 'rarity-epic',
+  legendary: 'rarity-legendary',
+  mythic: 'rarity-mythic',
+}
 
 // 🧠 NEUROMARKETING: Lootboxes — economia de status + dopamina de revelacao aleatoria
 // Probabilidades calibradas para dar "quase-ganho" frequente (efeito cassino)
@@ -256,26 +264,40 @@ export default function ShopPage() {
           const canAfford = balance >= item.price
           const justBought = purchaseFlash === item.id
 
+          const rarityClass = rarityCardClass[item.rarity] || 'rarity-common'
+          const isHighRarity = item.rarity === 'legendary' || item.rarity === 'mythic'
+
           return (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className={`bg-surface border rounded-2xl overflow-hidden transition-all
-                ${equipped ? 'border-accent/50 bg-accent/5' : 'border-border'}`}
+              whileHover={{ y: -2 }}
+              className={`bg-surface rounded-2xl overflow-hidden transition-all ${rarityClass}
+                ${equipped ? 'ring-2 ring-money/50' : ''}`}
             >
               {/* Item preview */}
-              <div className="relative h-28 bg-surface-hover flex items-center justify-center">
-                <span className="text-5xl">{item.emoji}</span>
-                <div className="absolute top-2 right-2">
+              <div className="relative h-28 bg-surface-hover flex items-center justify-center overflow-hidden">
+                {/* Particulas flutuantes pra lendario/mitico */}
+                {isHighRarity && (
+                  <>
+                    <span className="rarity-particle" style={{ left: '15%', bottom: '10%', animationDelay: '0s', color: item.rarity === 'mythic' ? '#ff2d6b' : '#ffb800' }}>✦</span>
+                    <span className="rarity-particle" style={{ left: '75%', bottom: '15%', animationDelay: '1s', color: item.rarity === 'mythic' ? '#ff2d6b' : '#ffb800' }}>✦</span>
+                    <span className="rarity-particle" style={{ left: '45%', bottom: '8%', animationDelay: '2s', color: item.rarity === 'mythic' ? '#ff2d6b' : '#ffb800' }}>✧</span>
+                  </>
+                )}
+                <span className="text-5xl relative z-10" style={isHighRarity ? { filter: `drop-shadow(0 0 8px ${item.rarity === 'mythic' ? '#ff2d6b88' : '#ffb80088'})` } : {}}>
+                  {item.emoji}
+                </span>
+                <div className="absolute top-2 right-2 z-10">
                   <Badge color={rarityBadgeColor[item.rarity]}>
                     {rarityLabel[item.rarity]}
                   </Badge>
                 </div>
                 {equipped && (
-                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-accent flex items-center justify-center">
-                    <Check size={12} className="text-white" />
+                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-money flex items-center justify-center z-10">
+                    <Check size={12} className="text-[#0a0a0f]" strokeWidth={3} />
                   </div>
                 )}
 
@@ -285,11 +307,11 @@ export default function ShopPage() {
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0, opacity: 0 }}
-                      className="absolute inset-0 bg-green/20 backdrop-blur-sm flex items-center justify-center"
+                      className="absolute inset-0 bg-money/20 backdrop-blur-sm flex items-center justify-center z-20"
                     >
                       <div className="text-center">
-                        <Sparkles className="text-green mx-auto mb-1" size={24} />
-                        <p className="text-green text-xs font-bold">Comprado!</p>
+                        <Sparkles className="text-money mx-auto mb-1" size={24} />
+                        <p className="text-money text-xs font-bold font-mono-stonks uppercase tracking-wider">Comprado!</p>
                       </div>
                     </motion.div>
                   )}
@@ -298,7 +320,12 @@ export default function ShopPage() {
 
               {/* Item info */}
               <div className="p-3">
-                <p className="font-semibold text-text-primary text-sm truncate">{item.name}</p>
+                <p className={`font-semibold text-sm truncate
+                  ${item.rarity === 'legendary' ? 'font-mono-stonks text-[#ffb800]' : ''}
+                  ${item.rarity === 'mythic' ? 'font-mono-stonks text-[#ff2d6b]' : ''}
+                  ${item.rarity !== 'legendary' && item.rarity !== 'mythic' ? 'text-text-primary' : ''}`}>
+                  {item.name}
+                </p>
                 <p className={`text-[11px] font-medium ${getRarityColor(item.rarity)}`}>
                   {item.category === 'hat' ? 'Chapeu' : item.category === 'glasses' ? 'Oculos' : item.category === 'effect' ? 'Efeito' : 'Moldura'}
                 </p>
@@ -307,10 +334,10 @@ export default function ShopPage() {
                 {owned ? (
                   <button
                     onClick={() => handleEquip(item)}
-                    className={`w-full mt-2 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all
+                    className={`w-full mt-2 py-2 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider cursor-pointer transition-all
                       ${equipped
-                        ? 'bg-accent/20 text-accent border border-accent/30'
-                        : 'bg-surface-hover text-text-secondary border border-border hover:text-accent hover:border-accent/30'
+                        ? 'bg-money/15 text-money border border-money/30'
+                        : 'bg-surface-hover text-text-secondary border border-border hover:text-money hover:border-money/30'
                       }`}
                   >
                     {equipped ? '✓ Equipado' : 'Equipar'}
@@ -319,17 +346,17 @@ export default function ShopPage() {
                   <button
                     onClick={() => handleBuy(item)}
                     disabled={!canAfford}
-                    className={`w-full mt-2 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all
+                    className={`w-full mt-2 py-2 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider cursor-pointer transition-all
                       flex items-center justify-center gap-1.5
                       ${canAfford
-                        ? 'bg-green/20 text-green border border-green/30 hover:bg-green/30'
+                        ? 'bg-money/15 text-money border border-money/30 hover:bg-money/25'
                         : 'bg-surface-hover text-text-muted border border-border opacity-50 cursor-not-allowed'
                       }`}
                   >
                     {canAfford ? (
-                      <><Coins size={12} /> S$ {item.price}</>
+                      <><Coins size={12} /> <span className="tabular-nums">S$ {item.price}</span></>
                     ) : (
-                      <><Lock size={12} /> S$ {item.price}</>
+                      <><Lock size={12} /> <span className="tabular-nums">S$ {item.price}</span></>
                     )}
                   </button>
                 )}
