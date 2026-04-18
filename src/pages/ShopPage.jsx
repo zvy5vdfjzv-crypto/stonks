@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingBag, Check, Lock, Coins, Sparkles, Gift, Zap } from 'lucide-react'
 import CoinRain from '../components/ui/CoinRain'
+import LootboxReveal from '../components/ui/LootboxReveal'
 import { useUser, SHOP_ITEMS, getRarityColor } from '../context/UserContext'
 import { useGame } from '../context/GameContext'
 import Badge from '../components/ui/Badge'
@@ -255,6 +256,16 @@ export default function ShopPage() {
 
       {/* Coin rain for epic/legendary lootbox wins */}
       <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
+
+      {/* 🧠 FASE 4: LootboxReveal — ritual tela cheia (briefing 4.6) */}
+      <LootboxReveal
+        isOpen={lootboxPhase !== 'idle'}
+        phase={lootboxPhase}
+        box={LOOTBOXES.find(b => b.id === lootboxOpening)}
+        result={lootboxResult}
+        onClose={() => { setLootboxPhase('idle'); setLootboxOpening(null); setLootboxResult(null) }}
+        onSkip={() => { setLootboxPhase('idle'); setLootboxOpening(null); setLootboxResult(null) }}
+      />
 
       {/* Items grid */}
       <div className="grid grid-cols-2 gap-3">

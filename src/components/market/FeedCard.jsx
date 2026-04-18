@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarChart2, MoreHorizontal, Send, Flame } from 'lucide-react'
 import CoinRain from '../ui/CoinRain'
 import AnimatedNumber from '../ui/AnimatedNumber'
+import FlyingCoins from '../ui/FlyingCoins'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -22,19 +23,27 @@ export default function FeedCard({ trend, onOpenStats }) {
   ])
   const [sent, setSent] = useState(null)
   const [showCoinRain, setShowCoinRain] = useState(false)
+  const [flyOrigin, setFlyOrigin] = useState(null)
   const { friends, communities, sendMessage } = useChat()
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
   // 🧠 NEUROMARKETING: FOMO — highlight visual para pumps > 15%
   const isHotPump = Math.abs(trend.change24h) > 15
 
-  const handleBancar = () => {
+  const handleBancar = (evt) => {
     if (trend.price > balance) return
     buy(trend.id, 1)
-    // 🧠 NEUROMARKETING: Haptic feedback — toque fisico reforça decisao
-    navigator.vibrate?.([50])
+    // 🧠 Haptic feedback
+    navigator.vibrate?.([30])
     setShowBancou(true)
     setTimeout(() => setShowBancou(false), 1200)
+    // 🧠 Moedas voando do ponto de click → wallet no header
+    if (evt?.clientX !== undefined) {
+      setFlyOrigin({ x: evt.clientX, y: evt.clientY })
+    } else {
+      // fallback para double-tap (sem evento): centro da tela
+      setFlyOrigin({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+    }
   }
 
   const handleSell = () => {
@@ -87,6 +96,8 @@ export default function FeedCard({ trend, onOpenStats }) {
     <article className={`border-b border-border/40 transition-all hover:bg-surface/30 ${isHotPump ? 'relative' : ''}`}>
       {/* 🧠 NEUROMARKETING: Chuva de moedas ao vender com lucro */}
       <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
+      {/* 🧠 FASE 4: Moedas voando do click → wallet */}
+      <FlyingCoins origin={flyOrigin} onDone={() => setFlyOrigin(null)} />
       {/* Header - user/source info */}
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2.5">
@@ -110,7 +121,7 @@ export default function FeedCard({ trend, onOpenStats }) {
       {/* 🧠 FOMO border — hype orange (laranja de urgencia) pulsante em hot pumps */}
       <div className={`relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden transition-all
         ${isHotPump ? 'ring-2 ring-hype/70 glow-hype' : ''}`}
-        onDoubleClick={() => { setLiked(true); handleBancar() }}>
+        onDoubleClick={(e) => { setLiked(true); handleBancar(e) }}>
         <img
           src={trend.thumbnail}
           alt={trend.name}
@@ -171,7 +182,7 @@ export default function FeedCard({ trend, onOpenStats }) {
             <motion.button
               whileHover={trend.price > balance ? {} : { scale: 1.03 }}
               whileTap={{ scale: 0.94 }}
-              onClick={handleBancar}
+              onClick={(e) => handleBancar(e)}
               disabled={trend.price > balance}
               className="cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >

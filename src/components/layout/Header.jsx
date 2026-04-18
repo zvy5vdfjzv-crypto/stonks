@@ -47,10 +47,17 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
 
         <div className="flex items-center gap-2">
           {/* 🧠 WALLET HERO — mono grande + seta direcao. Elemento mais proeminente do header.
-             Troca pill generico por display terminal-style (Bloomberg vibe). */}
+             Troca pill generico por display terminal-style (Bloomberg vibe).
+             data-wallet-hero permite FlyingCoins mirar este elemento. */}
           <motion.div
             key="balance-hero"
-            className="flex items-center gap-2 bg-gradient-to-br from-[#14141c] to-[#0a0a0f] rounded-lg px-3 py-1.5 border border-money/20"
+            data-wallet-hero
+            animate={balanceDelta !== 0 ? { scale: [1, 1.06, 1] } : {}}
+            transition={{ duration: 0.35 }}
+            className={`flex items-center gap-2 bg-gradient-to-br from-[#14141c] to-[#0a0a0f] rounded-lg px-3 py-1.5 border transition-colors
+              ${balanceDelta > 0 ? 'border-money/70 shadow-[0_0_16px_#00ff8844]' :
+                balanceDelta < 0 ? 'border-loss/70 shadow-[0_0_16px_#ff3b6b44]' :
+                'border-money/20'}`}
           >
             <Wallet size={13} className="text-money" />
             <span className="text-money font-mono-stonks text-[10px] uppercase tracking-wider">S$</span>

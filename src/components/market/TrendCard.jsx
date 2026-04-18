@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, BarChart2, ChevronUp, ChevronDown, Minus, Plus, ShoppingCart } from 'lucide-react'
 import SparkLine from './SparkLine'
 import Badge from '../ui/Badge'
+import FlyingCoins from '../ui/FlyingCoins'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 
@@ -17,6 +18,7 @@ export default function TrendCard({ trend, index, onOpenStats }) {
   const { balance, holdings, buy, sell } = useGame()
   const [qty, setQty] = useState(1)
   const [flash, setFlash] = useState(null)
+  const [flyOrigin, setFlyOrigin] = useState(null)
   const isPositive = trend.change24h >= 0
   const holding = holdings[trend.id]
   // 🧠 NEUROMARKETING: FOMO threshold — memes subindo >15% ganham destaque urgente
@@ -26,9 +28,11 @@ export default function TrendCard({ trend, index, onOpenStats }) {
     e.stopPropagation()
     if (qty * trend.price > balance) return
     buy(trend.id, qty)
-    navigator.vibrate?.([50]) // 🧠 Haptic feedback
+    navigator.vibrate?.([30])
     setFlash('buy')
     setTimeout(() => setFlash(null), 600)
+    // 🧠 FASE 4: Moedas voando do click → wallet (uma por cota, max 8)
+    setFlyOrigin({ x: e.clientX, y: e.clientY, count: Math.min(qty, 8) })
   }
 
   const handleSell = (e) => {
@@ -41,14 +45,16 @@ export default function TrendCard({ trend, index, onOpenStats }) {
   }
 
   return (
+    <>
+    {/* 🧠 FASE 4: Moedas voando do click → wallet quando banca */}
+    <FlyingCoins origin={flyOrigin} count={flyOrigin?.count || 6} onDone={() => setFlyOrigin(null)} />
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      {/* 🧠 NEUROMARKETING: Borda neon verde pulsante em hot pumps — FOMO visual */}
       className={`bg-surface rounded-2xl border overflow-hidden transition-all duration-300
-        ${flash === 'buy' ? 'border-green/60' : flash === 'sell' ? 'border-red/60'
-          : isHotPump ? 'border-green/50 shadow-[0_0_15px_#00D68F40] animate-pulse' : 'border-border'}`}
+        ${flash === 'buy' ? 'border-money/60 glow-money' : flash === 'sell' ? 'border-loss/60'
+          : isHotPump ? 'border-hype/50 glow-hype' : 'border-border'}`}
     >
       {/* Thumbnail + overlay info */}
       <div
@@ -172,5 +178,6 @@ export default function TrendCard({ trend, index, onOpenStats }) {
         </button>
       </div>
     </motion.div>
+    </>
   )
 }
