@@ -1,16 +1,56 @@
 @import "tailwindcss";
 
-/* Dark theme (default) */
+/* ================================================================
+   🎨 STONKS DESIGN TOKENS — Fase 1
+   Filosofia: "Terminal Bloomberg hackeado por geracao TikTok"
+   ================================================================ */
+
 @theme {
-  --color-accent: #6C5CE7;
-  --color-accent-light: #A29BFE;
-  --color-green: #00D68F;
-  --color-green-light: #00D68F33;
-  --color-red: #FF6B6B;
-  --color-red-light: #FF6B6B33;
-  --color-yellow: #FECA57;
+  /* ===== PALETA CORE ===== */
+
+  /* Accent primario: Verde dinheiro/terminal (era o papel do roxo) */
+  --color-money: #00ff88;
+  --color-money-dim: #00cc6a;
+  --color-money-glow: #00ff8844;
+
+  /* Accent secundario: Laranja hype/FOMO */
+  --color-hype: #ff6b1a;
+  --color-hype-dim: #cc5515;
+  --color-hype-glow: #ff6b1a44;
+
+  /* Accent terciario: Roxo sistema (DEGRADADO a terciario — era primario) */
+  --color-system: #7c5cff;
+  --color-system-dim: #6449d9;
+  --color-system-glow: #7c5cff44;
+
+  /* Semantica financeira */
+  --color-gain: #00ff88;
+  --color-loss: #ff3b6b;
+  --color-neutral-fin: #8888a0;
+
+  /* Raridades (loja/itens) */
+  --color-rarity-common: #8888a0;
+  --color-rarity-rare: #4a9eff;
+  --color-rarity-epic: #b44aff;
+  --color-rarity-legendary: #ffb800;
+  --color-rarity-mythic: #ff2d6b;
+
+  /* ===== ALIASES DE COMPATIBILIDADE (zero breaking changes) =====
+     Componentes legados usam --color-accent/-light. Apontam pro system
+     (roxo) pra manter visual ate migracao progressiva das Fases 2-4. */
+  --color-accent: var(--color-system);
+  --color-accent-light: #a28bff;
+
+  /* Semanticas classicas mantidas */
+  --color-green: var(--color-gain);
+  --color-green-light: #00ff8833;
+  --color-red: var(--color-loss);
+  --color-red-light: #ff3b6b33;
+  --color-yellow: #fecA57;
   --color-blue: #54A0FF;
   --color-pink: #FF6B9D;
+
+  /* Superficies (mapeadas pra vars dinamicas abaixo) */
   --color-surface: var(--surface);
   --color-surface-light: var(--surface-light);
   --color-surface-hover: var(--surface-hover);
@@ -19,23 +59,40 @@
   --color-text-primary: var(--text-p);
   --color-text-secondary: var(--text-s);
   --color-text-muted: var(--text-m);
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* ===== FONT FAMILIES =====
+     Display: Space Grotesk — titulos impactantes, precos hero, ALL CAPS hype
+     Mono: JetBrains Mono — numeros, tickers, timestamps, dados densos
+     Sans: Geist — corpo, UI geral (substitui Inter) */
+  --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+  --font-mono-stonks: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
 }
 
+/* ===== SUPERFICIES DARK (default) ===== */
 :root {
-  --bg-app: #0a0a0c;
-  --surface: #151518;
-  --surface-light: #1C1C21;
-  --surface-hover: #22222A;
-  --border-c: #2A2A35;
-  --border-light-c: #35354A;
-  --text-p: #F0F0F5;
-  --text-s: #8888A0;
-  --text-m: #55556A;
+  --bg-app: #0a0a0f;          /* base — levemente azulado, nao preto total */
+  --bg-elevated: #14141c;     /* cards, modais */
+  --bg-overlay: #1c1c28;      /* hover states */
+  --bg-terminal: #000000;     /* areas tipo "terminal" com grid */
+
+  --surface: #14141c;
+  --surface-light: #1c1c28;
+  --surface-hover: #22222e;
+  --border-c: #2a2a38;
+  --border-light-c: #35354a;
+  --text-p: #ffffff;
+  --text-s: #a0a0b8;
+  --text-m: #606070;
 }
 
+/* ===== SUPERFICIES LIGHT ===== */
 html.light {
   --bg-app: #F5F5F7;
+  --bg-elevated: #FFFFFF;
+  --bg-overlay: #F0F0F2;
+  --bg-terminal: #FAFAFA;
+
   --surface: #FFFFFF;
   --surface-light: #F0F0F2;
   --surface-hover: #E8E8EC;
@@ -46,19 +103,38 @@ html.light {
   --text-m: #A1A1AA;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+/* ================================================================
+   UTILITARIAS DE IDENTIDADE
+   ================================================================ */
+
+/* Fontes por contexto */
+.font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+.font-mono-stonks { font-family: var(--font-mono-stonks); font-feature-settings: 'tnum' 1, 'zero' 1; }
+
+/* Glows coloridos — use em CTAs, hot pumps, raridade lendaria */
+.glow-money { box-shadow: 0 0 24px var(--color-money-glow), 0 0 48px color-mix(in srgb, var(--color-money-glow) 60%, transparent); }
+.glow-hype { box-shadow: 0 0 24px var(--color-hype-glow), 0 0 48px color-mix(in srgb, var(--color-hype-glow) 60%, transparent); }
+.glow-legendary { box-shadow: 0 0 32px color-mix(in srgb, var(--color-rarity-legendary) 40%, transparent), 0 0 64px color-mix(in srgb, var(--color-rarity-legendary) 20%, transparent); }
+.glow-mythic { box-shadow: 0 0 32px color-mix(in srgb, var(--color-rarity-mythic) 45%, transparent), 0 0 72px color-mix(in srgb, var(--color-rarity-mythic) 25%, transparent); }
+
+/* Grid estilo Bloomberg Terminal — fundo com linhas sutis */
+.terminal-grid {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-.stonks-glow {
-  text-shadow: 0 0 20px rgba(108, 92, 231, 0.5), 0 0 40px rgba(108, 92, 231, 0.2);
-}
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 214, 143, 0.3), 0 0 60px rgba(0, 214, 143, 0.1);
-}
-.glow-accent {
-  box-shadow: 0 0 20px rgba(108, 92, 231, 0.3), 0 0 60px rgba(108, 92, 231, 0.1);
-}
+/* Legado (mantido pra nao quebrar paginas que ja usam) */
+.stonks-glow { text-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 0 40px rgba(0, 255, 136, 0.2); }
+.glow-green { box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), 0 0 60px rgba(0, 255, 136, 0.1); }
+.glow-accent { box-shadow: 0 0 20px rgba(124, 92, 255, 0.3), 0 0 60px rgba(124, 92, 255, 0.1); }
+
+/* ================================================================
+   ANIMACOES
+   ================================================================ */
 
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -66,14 +142,35 @@ html.light {
 }
 .page-enter { animation: fadeSlideIn 0.3s ease-out; }
 
+/* Neon glow suave pro HOT PUMP (laranja hype) */
 @keyframes neon-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(0, 214, 143, 0.2); }
-  50% { box-shadow: 0 0 18px rgba(0, 214, 143, 0.4); }
+  0%, 100% { box-shadow: 0 0 8px var(--color-hype-glow); }
+  50% { box-shadow: 0 0 20px color-mix(in srgb, var(--color-hype-glow) 80%, transparent); }
 }
 .glow-neon { animation: neon-glow 2s ease-in-out infinite; }
 
+/* Shimmer — pra raridades epicas/legendary nas Fases 3-4 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s linear infinite;
+}
+
+/* Rotacao de borda conic — pra itens lendarios (Fase 3) */
+@keyframes legendary-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ================================================================
+   UTILS
+   ================================================================ */
+
 .card-elevated {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.24), 0 4px 16px rgba(0,0,0,0.16);
 }
 
 body {
@@ -81,7 +178,7 @@ body {
   padding: 0;
   background: var(--bg-app);
   color: var(--text-p);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background 0.3s, color 0.3s;
@@ -98,7 +195,7 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border-c); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-light-c); }
 
-::selection { background: #6C5CE740; color: var(--text-p); }
+::selection { background: color-mix(in srgb, var(--color-money) 30%, transparent); color: var(--text-p); }
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
