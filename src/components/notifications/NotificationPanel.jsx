@@ -37,17 +37,18 @@ export default function NotificationPanel({ isOpen, onClose }) {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {/* Mute toggle */}
+                {/* 🎵 Mute toggle — muta push + som + haptic (unified sensory mute) */}
                 <button
                   onClick={toggleMute}
-                  className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg cursor-pointer transition-all
+                  title={muted ? 'Som, haptics e push silenciados. Clique para ativar.' : 'Som, haptics e push ativos.'}
+                  className={`flex items-center gap-1 text-[10px] font-mono-stonks font-bold uppercase tracking-wider px-2 py-1 rounded-lg cursor-pointer transition-all
                     ${muted
-                      ? 'bg-red/10 text-red border border-red/20'
-                      : 'bg-surface-hover text-text-muted hover:text-text-secondary border border-border'
+                      ? 'bg-loss/10 text-loss border border-loss/30'
+                      : 'bg-money/10 text-money border border-money/30'
                     }`}
                 >
                   {muted ? <BellOff size={10} /> : <Bell size={10} />}
-                  {muted ? 'Silenciado' : 'Ativo'}
+                  {muted ? 'Mudo' : 'Som'}
                 </button>
                 {unreadCount > 0 && (
                   <button onClick={markAllRead}
@@ -61,12 +62,12 @@ export default function NotificationPanel({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Muted banner */}
+            {/* Muted banner — sensory total */}
             {muted && (
-              <div className="px-4 py-2 bg-red/5 border-b border-red/10 flex items-center gap-2">
-                <BellOff size={12} className="text-red" />
-                <span className="text-red text-[11px]">Push notifications silenciadas</span>
-                <button onClick={toggleMute} className="ml-auto text-accent text-[10px] font-semibold cursor-pointer">
+              <div className="px-4 py-2 bg-loss/5 border-b border-loss/20 flex items-center gap-2">
+                <BellOff size={12} className="text-loss" />
+                <span className="text-loss text-[11px] font-mono-stonks">Som, haptics e push silenciados</span>
+                <button onClick={toggleMute} className="ml-auto text-money text-[10px] font-mono-stonks font-bold uppercase tracking-wider cursor-pointer hover:text-money-dim">
                   Ativar
                 </button>
               </div>

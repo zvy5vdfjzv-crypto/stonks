@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion'
+import { sound } from '../../lib/sound'
+import { haptics } from '../../lib/haptics'
 
 // 🧠 Cada variante tem um papel. `money` e o CTA critico do app ("BANCAR").
 const variants = {
@@ -13,11 +15,14 @@ const variants = {
   ghost: 'bg-transparent text-text-secondary hover:text-text-primary hover:bg-surface-hover',
 }
 
-export default function Button({ children, variant = 'primary', className = '', disabled, haptic = false, onClick, ...props }) {
+export default function Button({ children, variant = 'primary', className = '', disabled, haptic = false, silent = false, onClick, ...props }) {
   const handleClick = (e) => {
-    // Haptic leve em mobile quando pedido
-    if (haptic && !disabled && typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(variant === 'money' || variant === 'hype' ? [30] : [10])
+    if (disabled) return
+    // 🎵 Click mecanico em todo Button (exceto silent=true)
+    if (!silent) sound.click()
+    // 📳 Haptic semantico
+    if (haptic) {
+      haptics.fire(variant === 'money' || variant === 'hype' ? 'medium' : 'light')
     }
     onClick?.(e)
   }

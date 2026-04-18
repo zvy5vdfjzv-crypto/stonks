@@ -4,6 +4,8 @@ import { TrendingUp, TrendingDown, Heart, MessageCircle, Share2, Bookmark, BarCh
 import CoinRain from '../ui/CoinRain'
 import AnimatedNumber from '../ui/AnimatedNumber'
 import FlyingCoins from '../ui/FlyingCoins'
+import { sound } from '../../lib/sound'
+import { haptics } from '../../lib/haptics'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -33,15 +35,15 @@ export default function FeedCard({ trend, onOpenStats }) {
   const handleBancar = (evt) => {
     if (trend.price > balance) return
     buy(trend.id, 1)
-    // 🧠 Haptic feedback
-    navigator.vibrate?.([30])
+    // 🎵 Caixa registradora + coin chime + haptic medio
+    sound.register()
+    haptics.fire('medium')
     setShowBancou(true)
     setTimeout(() => setShowBancou(false), 1200)
     // 🧠 Moedas voando do ponto de click → wallet no header
     if (evt?.clientX !== undefined) {
       setFlyOrigin({ x: evt.clientX, y: evt.clientY })
     } else {
-      // fallback para double-tap (sem evento): centro da tela
       setFlyOrigin({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
     }
   }
@@ -50,10 +52,14 @@ export default function FeedCard({ trend, onOpenStats }) {
     if (!holding || holding.quantity < 1) return
     const profit = (trend.price - holding.avgPrice) * 1
     sell(trend.id, 1)
-    // 🧠 NEUROMARKETING: Haptic + chuva de moedas no lucro — jackpot dopamina
-    navigator.vibrate?.([50])
+    // 🎵 Tom ascendente no lucro, descendente na perda
     if (profit > 0) {
+      sound.gain()
+      haptics.fire('success')
       setShowCoinRain(true)
+    } else {
+      sound.loss()
+      haptics.fire('loss')
     }
   }
 

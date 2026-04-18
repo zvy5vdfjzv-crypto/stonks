@@ -4,6 +4,8 @@ import { TrendingUp, TrendingDown, BarChart2, ChevronUp, ChevronDown, Minus, Plu
 import SparkLine from './SparkLine'
 import Badge from '../ui/Badge'
 import FlyingCoins from '../ui/FlyingCoins'
+import { sound } from '../../lib/sound'
+import { haptics } from '../../lib/haptics'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 
@@ -28,18 +30,20 @@ export default function TrendCard({ trend, index, onOpenStats }) {
     e.stopPropagation()
     if (qty * trend.price > balance) return
     buy(trend.id, qty)
-    navigator.vibrate?.([30])
+    sound.register()
+    haptics.fire('medium')
     setFlash('buy')
     setTimeout(() => setFlash(null), 600)
-    // 🧠 FASE 4: Moedas voando do click → wallet (uma por cota, max 8)
     setFlyOrigin({ x: e.clientX, y: e.clientY, count: Math.min(qty, 8) })
   }
 
   const handleSell = (e) => {
     e.stopPropagation()
     if (!holding || holding.quantity < qty) return
+    const profit = (trend.price - holding.avgPrice) * qty
     sell(trend.id, qty)
-    navigator.vibrate?.([50]) // 🧠 Haptic feedback
+    if (profit > 0) { sound.gain(); haptics.fire('success') }
+    else { sound.loss(); haptics.fire('loss') }
     setFlash('sell')
     setTimeout(() => setFlash(null), 600)
   }

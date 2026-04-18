@@ -1,5 +1,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
+import { sound } from '../lib/sound'
+import { haptics } from '../lib/haptics'
 
 const NOTIFICATION_TYPES = {
   bancada: { emoji: '🚀', color: 'text-green', bgColor: 'bg-green/10 border-green/20' },
@@ -55,8 +57,19 @@ export function NotificationProvider({ children }) {
   const [muted, setMuted] = useLocalStorage('stonks_notif_muted', false)
   const intervalRef = useRef(null)
 
+  // 🎵 Sincroniza sound + haptics com estado muted (unified sensory mute)
+  useEffect(() => {
+    sound.setMuted(muted)
+    haptics.setMuted(muted)
+  }, [muted])
+
   const addNotification = useCallback((type, title, body, options = {}) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: { type, title, body, silent: muted || options.silent } })
+    // 🎵 Som de notificacao (exceto se silent)
+    if (!muted && !options.silent) {
+      const toneMap = { bancada: 'market', like: 'like', comment: 'social', follow: 'social', price_up: 'price_up', price_down: 'price_down', boost: 'market', news: 'market', trade: 'market', meme: 'social' }
+      sound.ding(toneMap[type] || 'default')
+    }
   }, [muted])
 
   const markRead = useCallback((id) => dispatch({ type: 'MARK_READ', payload: id }), [])

@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { RARITY } from '../../lib/design-tokens'
+import { sound } from '../../lib/sound'
+import { haptics } from '../../lib/haptics'
 
 const RARITY_BG_GRADIENT = {
   common: 'from-gray-800 via-gray-900 to-black',
@@ -58,11 +60,31 @@ export default function LootboxReveal({ isOpen, phase, box, result, onClose, onS
 
   useEffect(() => {
     if (phase === 'spinning') {
-      const t = setTimeout(() => setCanSkip(true), 600) // skip liberado depois de 600ms
+      // 🎵 Swoosh de abertura + haptic anticipation
+      sound.swoosh()
+      haptics.fire('anticipation')
+      const t = setTimeout(() => setCanSkip(true), 600)
       return () => clearTimeout(t)
     }
     setCanSkip(false)
   }, [phase])
+
+  // 🎵 Reveal: ding pra rarezas baixas, fanfare pra lendary/mythic
+  useEffect(() => {
+    if (phase === 'reveal' && result) {
+      const r = result.rarity
+      if (r === 'legendary' || r === 'mythic') {
+        sound.fanfare()
+        haptics.fire('jackpot')
+      } else if (r === 'epic') {
+        sound.gain()
+        haptics.fire('success')
+      } else {
+        sound.ding('market')
+        haptics.fire('medium')
+      }
+    }
+  }, [phase, result])
 
   const rarity = result?.rarity || 'common'
   const bgGradient = RARITY_BG_GRADIENT[rarity]
