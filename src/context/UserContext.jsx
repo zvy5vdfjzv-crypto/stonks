@@ -134,6 +134,8 @@ function dbToUser(profile) {
     avatar: profile.avatar || '🎮',
     avatarType: profile.avatar_type || 'emoji',
     avatarConfig: null,
+    // 🏰 Character class RPG — campo separado do avatar
+    characterClass: profile.character_class || 'humano',
     bio: profile.bio || '',
     socialLinks: profile.social_links || { instagram: '', x: '', youtube: '', linkedin: '' },
     niches: profile.niches || [],
@@ -162,6 +164,7 @@ function userToDb(fields) {
     handle: 'handle',
     avatar: 'avatar',
     avatarType: 'avatar_type',
+    characterClass: 'character_class',
     bio: 'bio',
     socialLinks: 'social_links',
     niches: 'niches',
@@ -346,6 +349,7 @@ export function UserProvider({ children }) {
         handle: handle,
         avatar: data.avatar || '🎮',
         avatar_type: data.avatarType || 'emoji',
+        character_class: data.characterClass || 'humano',
         niches: data.niches || [],
         bio: '',
         social_links: { instagram: '', x: '', youtube: '', linkedin: '' },
@@ -479,6 +483,12 @@ export function UserProvider({ children }) {
     syncToDb({ niches })
   }, [syncToDb])
 
+  // 🏰 Trocar classe do personagem RPG
+  const updateCharacterClass = useCallback((characterClass) => {
+    setUser(prev => prev ? { ...prev, characterClass } : prev)
+    syncToDb({ characterClass })
+  }, [syncToDb])
+
   const addCreatorScore = useCallback((points) => {
     setUser(prev => {
       if (!prev) return prev
@@ -561,6 +571,7 @@ export function UserProvider({ children }) {
       resetPassword,
       updateProfile,
       updateNiches,
+      updateCharacterClass,
       addCreatorScore,
       incrementStat,
       buyItem,

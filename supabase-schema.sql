@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   handle TEXT UNIQUE NOT NULL DEFAULT '',
   avatar TEXT DEFAULT '🎮',
   avatar_type TEXT DEFAULT 'emoji',
+  character_class TEXT DEFAULT 'humano',
   bio TEXT DEFAULT '',
   social_links JSONB DEFAULT '{"instagram":"","x":"","youtube":"","linkedin":""}',
   niches TEXT[] DEFAULT '{}',
@@ -57,3 +58,9 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ================================================================
+-- MIGRATION: adicionar character_class para profiles existentes
+-- Rode SO se ja criou o schema antes (caso contrario ja esta no CREATE TABLE acima)
+-- ================================================================
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS character_class TEXT DEFAULT 'humano';

@@ -95,10 +95,9 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
     <div className="space-y-4">
       <label className="text-text-secondary text-xs font-medium block">Seu avatar</label>
 
-      {/* Avatar type tabs */}
-      <div className="grid grid-cols-4 bg-surface-hover rounded-xl p-1 gap-1">
+      {/* Avatar type tabs — foto de perfil */}
+      <div className="flex bg-surface-hover rounded-xl p-1 gap-1">
         {[
-          { id: 'character', icon: null, iconComp: Swords, label: 'Personagem' },
           { id: 'emoji', icon: '😎', label: 'Emoji' },
           { id: 'photo', icon: null, iconComp: Camera, label: 'Foto' },
           { id: '3d', icon: null, iconComp: User, label: 'Face' },
@@ -106,9 +105,9 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
           <button
             key={tab.id}
             onClick={() => setAvatarType(tab.id)}
-            className={`flex flex-col sm:flex-row items-center justify-center gap-1 py-2 rounded-lg text-[10px] sm:text-xs font-semibold
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold
               cursor-pointer transition-all
-              ${avatarType === tab.id ? 'bg-money text-[#0a0a0f]' : 'text-text-muted hover:text-text-secondary'}`}
+              ${avatarType === tab.id ? 'bg-accent text-white' : 'text-text-muted hover:text-text-secondary'}`}
           >
             {tab.icon ? <span>{tab.icon}</span> : <tab.iconComp size={14} />}
             {tab.label}
@@ -117,47 +116,6 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
       </div>
 
       <div>
-        {/* 🏰 Personagem picker — 6 classes RPG */}
-        {avatarType === 'character' && (
-          <div>
-            <p className="text-text-muted text-[10px] text-center mb-3 font-mono-stonks uppercase tracking-wider">
-              Escolha sua classe
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {CHARACTER_CLASSES.map(cls => {
-                const selected = avatar === cls.id
-                return (
-                  <button
-                    key={cls.id}
-                    onClick={() => { setAvatar(cls.id); setAvatarUrl(null) }}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer transition-all group
-                      ${selected
-                        ? 'ring-2 ring-money scale-105 glow-money'
-                        : 'ring-1 ring-border hover:ring-money/40'}`}
-                  >
-                    <svg viewBox="0 0 100 100" className="w-full aspect-square block"
-                      dangerouslySetInnerHTML={{ __html: renderCharacterSVG(cls.id) }} />
-                    <div className={`absolute inset-x-0 bottom-0 py-1.5 text-center backdrop-blur-sm
-                      ${selected ? 'bg-money/90 text-[#0a0a0f]' : 'bg-black/70 text-white'}`}>
-                      <p className="font-mono-stonks font-bold text-[10px] uppercase tracking-wider">{cls.name}</p>
-                    </div>
-                    {selected && (
-                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-money flex items-center justify-center">
-                        <Check size={10} className="text-[#0a0a0f]" strokeWidth={4} />
-                      </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-            {avatar && CHARACTER_CLASSES.find(c => c.id === avatar) && (
-              <p className="text-text-secondary text-xs text-center mt-3 italic">
-                {CHARACTER_CLASSES.find(c => c.id === avatar)?.tagline}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Emoji picker */}
         {avatarType === 'emoji' && (
           <div>
@@ -285,6 +243,51 @@ function AvatarPicker({ avatarType, setAvatarType, avatar, setAvatar, avatarUrl,
   )
 }
 
+// 🏰 CharacterPicker — selecao de classe RPG, CAMPO SEPARADO do avatar
+function CharacterPicker({ selected, onSelect }) {
+  return (
+    <div className="space-y-3">
+      <label className="text-text-secondary text-xs font-medium block flex items-center gap-2">
+        <Swords size={14} className="text-money" />
+        Seu personagem <span className="text-text-muted text-[10px]">(pode ser equipado com items)</span>
+      </label>
+      <div className="grid grid-cols-3 gap-2">
+        {CHARACTER_CLASSES.map(cls => {
+          const isSelected = selected === cls.id
+          return (
+            <button
+              key={cls.id}
+              type="button"
+              onClick={() => onSelect(cls.id)}
+              className={`relative rounded-xl overflow-hidden cursor-pointer transition-all
+                ${isSelected
+                  ? 'ring-2 ring-money scale-105 glow-money'
+                  : 'ring-1 ring-border hover:ring-money/40'}`}
+            >
+              <svg viewBox="0 0 100 100" className="w-full aspect-square block"
+                dangerouslySetInnerHTML={{ __html: renderCharacterSVG(cls.id) }} />
+              <div className={`absolute inset-x-0 bottom-0 py-1 text-center backdrop-blur-sm
+                ${isSelected ? 'bg-money/90 text-[#0a0a0f]' : 'bg-black/70 text-white'}`}>
+                <p className="font-mono-stonks font-bold text-[9px] uppercase tracking-wider">{cls.name}</p>
+              </div>
+              {isSelected && (
+                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-money flex items-center justify-center">
+                  <Check size={10} className="text-[#0a0a0f]" strokeWidth={4} />
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {selected && CHARACTER_CLASSES.find(c => c.id === selected) && (
+        <p className="text-text-secondary text-xs text-center italic">
+          "{CHARACTER_CLASSES.find(c => c.id === selected)?.tagline}"
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function OnboardingPage() {
   const { register, login, resetPassword, authError, user, session } = useUser()
   const { t } = useLang()
@@ -301,6 +304,7 @@ export default function OnboardingPage() {
   const [avatar, setAvatar] = useState('🎮')
   const [avatarType, setAvatarType] = useState('emoji')
   const [avatarUrl, setAvatarUrl] = useState(null)
+  const [characterClass, setCharacterClass] = useState('humano')
   const [selectedNiches, setSelectedNiches] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [resetSent, setResetSent] = useState(false)
@@ -324,6 +328,7 @@ export default function OnboardingPage() {
       handle,
       avatar: avatarUrl || avatar,
       avatarType,
+      characterClass,
       niches: selectedNiches,
     })
     setSubmitting(false)
@@ -433,7 +438,7 @@ export default function OnboardingPage() {
                 <div className="bg-red/15 border border-red/30 rounded-xl px-4 py-2.5 text-red text-xs">{authError}</div>
               )}
 
-              {/* Avatar picker */}
+              {/* Avatar picker (foto de perfil) */}
               <AvatarPicker
                 avatarType={avatarType}
                 setAvatarType={setAvatarType}
@@ -442,6 +447,9 @@ export default function OnboardingPage() {
                 avatarUrl={avatarUrl}
                 setAvatarUrl={setAvatarUrl}
               />
+
+              {/* 🏰 Character picker (boneco RPG — SEPARADO da foto) */}
+              <CharacterPicker selected={characterClass} onSelect={setCharacterClass} />
 
               {/* Name */}
               <div>

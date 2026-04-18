@@ -4,6 +4,8 @@ import { ShoppingBag, Check, Lock, Coins, Sparkles, Gift, Zap } from 'lucide-rea
 import CoinRain from '../components/ui/CoinRain'
 import LootboxReveal from '../components/ui/LootboxReveal'
 import UserAvatar from '../components/ui/UserAvatar'
+import UserCharacter from '../components/avatar/UserCharacter'
+import { CHARACTER_CLASSES } from '../data/characters'
 import { useUser, SHOP_ITEMS, getRarityColor } from '../context/UserContext'
 import { useGame } from '../context/GameContext'
 import Badge from '../components/ui/Badge'
@@ -144,26 +146,29 @@ export default function ShopPage() {
         </div>
       </motion.div>
 
-      {/* 🧠 PREVIEW do boneco com items equipados — feedback imediato da compra */}
+      {/* 🏰 PREVIEW do PERSONAGEM RPG com items equipados */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.05 }}
         className="bg-gradient-to-br from-[#14141c] to-[#0a0a0f] border border-border rounded-2xl p-4 mb-5 flex items-center gap-4"
       >
-        <div className="relative shrink-0">
-          <UserAvatar size={96} className="rounded-2xl" />
-        </div>
+        <UserCharacter size={112} className="rounded-2xl shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-widest mb-1">Seu avatar</p>
-          <p className="text-text-primary font-display font-bold text-base truncate">{user.displayName}</p>
+          <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-widest mb-0.5">Seu Personagem</p>
+          <p className="text-text-primary font-display font-bold text-base truncate">
+            {CHARACTER_CLASSES.find(c => c.id === user.characterClass)?.name || 'Humano'}
+          </p>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {['hat', 'glasses', 'effect', 'frame'].map(cat => {
               const eqId = user.equippedItems?.[cat]
               const item = eqId ? SHOP_ITEMS.find(i => i.id === eqId) : null
+              const isHighRarity = item && (item.rarity === 'legendary' || item.rarity === 'mythic')
               return (
                 <span key={cat} className={`text-[9px] px-2 py-0.5 rounded border font-mono-stonks uppercase tracking-wider
-                  ${item ? `${rarityBadgeColor[item.rarity] === 'yellow' ? 'border-yellow/40 text-yellow bg-yellow/10' : 'border-money/30 text-money bg-money/10'}` : 'border-border text-text-muted bg-surface/50'}`}>
+                  ${item
+                    ? isHighRarity ? 'border-yellow/50 text-yellow bg-yellow/10' : 'border-money/30 text-money bg-money/10'
+                    : 'border-border text-text-muted bg-surface/50'}`}>
                   {cat === 'hat' ? 'Elmo' : cat === 'glasses' ? 'Visor' : cat === 'effect' ? 'Aura' : 'Moldura'}
                   {item && <span className="opacity-70 ml-1">✓</span>}
                 </span>

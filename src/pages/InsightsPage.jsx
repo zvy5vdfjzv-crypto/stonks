@@ -10,6 +10,8 @@ import Badge from '../components/ui/Badge'
 import VerifiedBadge from '../components/ui/VerifiedBadge'
 import RankSigil from '../components/ui/RankSigil'
 import UserAvatar from '../components/ui/UserAvatar'
+import UserCharacter from '../components/avatar/UserCharacter'
+import { CHARACTER_CLASSES, renderCharacterSVG } from '../data/characters'
 import EditProfileModal from '../components/profile/EditProfileModal'
 
 function SocialIcon({ type, size = 14, className = '' }) {
@@ -32,6 +34,56 @@ const SOCIAL_HOVER = {
   x: 'hover:text-text-primary',
   youtube: 'hover:text-red',
   linkedin: 'hover:text-blue',
+}
+
+// 🏰 Showcase do personagem RPG + picker inline pra trocar classe
+function CharacterShowcase() {
+  const { user, updateCharacterClass } = useUser()
+  const [picker, setPicker] = useState(false)
+  const current = CHARACTER_CLASSES.find(c => c.id === user?.characterClass) || CHARACTER_CLASSES[0]
+
+  return (
+    <div className="mt-4 bg-gradient-to-br from-[#14141c] to-[#0a0a0f] border border-border rounded-2xl p-4">
+      <div className="flex items-center gap-4">
+        <UserCharacter size={96} className="rounded-xl shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-widest">Personagem</p>
+          <p className="text-text-primary font-display font-bold text-lg truncate">{current.name}</p>
+          <p className="text-text-secondary text-xs italic truncate">"{current.tagline}"</p>
+          <button onClick={() => setPicker(!picker)}
+            className="mt-2 text-[10px] font-mono-stonks font-bold uppercase tracking-wider text-money hover:text-money-dim cursor-pointer">
+            {picker ? 'Fechar' : 'Trocar classe'} →
+          </button>
+        </div>
+      </div>
+
+      {picker && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          className="overflow-hidden"
+        >
+          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50">
+            {CHARACTER_CLASSES.map(cls => {
+              const selected = user?.characterClass === cls.id
+              return (
+                <button key={cls.id}
+                  onClick={() => { updateCharacterClass(cls.id); setPicker(false) }}
+                  className={`relative rounded-lg overflow-hidden cursor-pointer transition-all
+                    ${selected ? 'ring-2 ring-money' : 'ring-1 ring-border hover:ring-money/40'}`}>
+                  <svg viewBox="0 0 100 100" className="w-full aspect-square block"
+                    dangerouslySetInnerHTML={{ __html: renderCharacterSVG(cls.id) }} />
+                  <div className={`absolute inset-x-0 bottom-0 py-0.5 text-center ${selected ? 'bg-money/90 text-[#0a0a0f]' : 'bg-black/70 text-white'}`}>
+                    <p className="font-mono-stonks font-bold text-[9px] uppercase tracking-wider">{cls.name}</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  )
 }
 
 export default function InsightsPage() {
@@ -170,6 +222,9 @@ export default function InsightsPage() {
             {user.creatorScore.toLocaleString()} / {nextTitle?.minScore?.toLocaleString() || '∞'} pts
           </p>
         </div>}
+
+        {/* 🏰 PERSONAGEM RPG — boneco com items equipados */}
+        <CharacterShowcase />
 
         {/* Edit profile button */}
         <button onClick={() => setEditOpen(true)}

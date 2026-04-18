@@ -1,82 +1,53 @@
-// 🧠 Avatar com composicao de items equipados + suporte a CHARACTER RPG.
-// 4 modos via user.avatarType: 'emoji' | 'photo' | '3d' (face) | 'character' (classe RPG).
-// Para character: renderiza SVG do personagem + overlays dos items.
+// 🧠 UserAvatar — foto de perfil do user (emoji/foto/face).
+// IMPORTANTE: frame e effect sao renderizados FORA do overflow-hidden
+// para que nao sejam cortados pelo clip do container.
+// Items hat/glasses NAO aparecem na foto (so no character RPG).
 import { useUser, SHOP_ITEMS } from '../../context/UserContext'
-import { renderCharacterSVG } from '../../data/characters'
 
-function OverlaySVG({ overlays, size }) {
-  if (!overlays.length) return null
-  const composed = overlays.join('')
-  return (
-    <svg
-      className="absolute inset-0 pointer-events-none"
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      dangerouslySetInnerHTML={{ __html: composed }}
-    />
-  )
-}
-
-export default function UserAvatar({ size = 40, className = '', showEquipped = true }) {
+export default function UserAvatar({ size = 40, className = '', showDecorations = true }) {
   const { user } = useUser()
   if (!user) return null
 
-  const avatarType = user.avatarType || 'emoji'
-  const isCharacter = avatarType === 'character'
-  const isUrl = !isCharacter && typeof user.avatar === 'string' && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))
-
-  // Items equipados — mesma ordem em todos os modos
+  const isUrl = typeof user.avatar === 'string' && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))
   const eq = user.equippedItems || {}
-  const overlays = []
-  if (showEquipped) {
-    ['frame', 'glasses', 'hat', 'effect'].forEach(cat => {
-      const itemId = eq[cat]
-      if (!itemId) return
-      const item = SHOP_ITEMS.find(i => i.id === itemId)
-      if (item?.svgOverlay) overlays.push(item.svgOverlay)
-    })
-  }
+
+  // Na foto de perfil so mostramos decoracoes ambientais: frame + effect
+  // (hat/glasses vao no character, nao fazem sentido sobre foto humana)
+  const frameItem = showDecorations && eq.frame ? SHOP_ITEMS.find(i => i.id === eq.frame) : null
+  const effectItem = showDecorations && eq.effect ? SHOP_ITEMS.find(i => i.id === eq.effect) : null
 
   // Base
-  let base
-  if (isCharacter) {
-    const svgMarkup = renderCharacterSVG(user.avatar || 'humano')
-    base = (
-      <svg
-        className="absolute inset-0"
-        width={size}
-        height={size}
-        viewBox="0 0 100 100"
-        dangerouslySetInnerHTML={{ __html: svgMarkup }}
-      />
-    )
-  } else if (isUrl) {
-    base = (
-      <img
-        src={user.avatar}
-        alt={user.displayName}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-    )
-  } else {
-    base = (
-      <div
-        className="absolute inset-0 flex items-center justify-center bg-accent/20"
-        style={{ fontSize: size * 0.55 }}
-      >
-        {user.avatar}
-      </div>
-    )
-  }
+  const base = isUrl ? (
+    <img src={user.avatar} alt={user.displayName} className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-accent/20"
+      style={{ fontSize: size * 0.55 }}>
+      {user.avatar}
+    </div>
+  )
 
   return (
     <div
-      className={`relative rounded-xl overflow-hidden ${className}`}
+      className={`relative ${className}`}
       style={{ width: size, height: size }}
     >
-      {base}
-      <OverlaySVG overlays={overlays} size={size} />
+      {/* Base avatar — clipped */}
+      <div className="absolute inset-0 rounded-[inherit] overflow-hidden">
+        {base}
+      </div>
+
+      {/* 🖼️ Frame + effect FORA do clip — podem extender */}
+      {(frameItem || effectItem) && (
+        <svg
+          className="absolute inset-0 pointer-events-none z-10"
+          width={size}
+          height={size}
+          viewBox="0 0 100 100"
+          dangerouslySetInnerHTML={{ __html:
+            (effectItem?.svgOverlay || '') + (frameItem?.svgOverlay || '')
+          }}
+        />
+      )}
     </div>
   )
 }
