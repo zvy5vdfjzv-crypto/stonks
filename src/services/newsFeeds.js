@@ -1,7 +1,6 @@
 // 📰 News RSS feeds — portais de noticia por nicho
-// Usa proxy rss2json.com (gratis 10k req/dia) pra contornar CORS
-// Setup alternativo no futuro: criar /api/rss Vercel serverless function
-const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url='
+// Usa Vercel serverless function /api/rss (server-side parsing, sem CORS)
+const RSS_PROXY = '/api/rss?url='
 
 // Portais por nicho — mistura BR + global
 const FEEDS = {
@@ -53,14 +52,15 @@ const FEEDS = {
 }
 
 function normalizeRssItem(item, source) {
+  const ts = item.pubDate ? new Date(item.pubDate).getTime() : Date.now()
   return {
     id: item.guid || item.link,
     title: item.title,
-    description: (item.description || '').replace(/<[^>]*>/g, '').slice(0, 200),
-    thumbnail: item.thumbnail || item.enclosure?.link || null,
+    description: item.description || '',
+    thumbnail: item.thumbnail || null,
     url: item.link,
     author: item.author || source.name,
-    publishedAt: new Date(item.pubDate).getTime(),
+    publishedAt: isNaN(ts) ? Date.now() : ts,
     source: 'news',
     sourceName: source.name,
   }
@@ -69,12 +69,11 @@ function normalizeRssItem(item, source) {
 export async function fetchNewsByCategory(category, limit = 8) {
   const feeds = FEEDS[category] || FEEDS.general
   try {
-    // Pega 1 feed random da categoria (distribui load entre portais)
     const source = feeds[Math.floor(Math.random() * feeds.length)]
-    const res = await fetch(`${RSS2JSON}${encodeURIComponent(source.url)}&count=${limit}`)
+    const res = await fetch(`${RSS_PROXY}${encodeURIComponent(source.url)}`)
     if (!res.ok) return []
     const data = await res.json()
-    if (data.status !== 'ok' || !data.items) return []
+    if (!data?.items) return []
     return data.items.slice(0, limit).map(item => normalizeRssItem(item, source))
   } catch {
     return []

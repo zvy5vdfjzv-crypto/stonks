@@ -32,17 +32,16 @@ function normalizePost(post) {
   }
 }
 
+// Usa proxy serverless /api/reddit pra evitar CORS do browser
 export async function fetchRedditPosts(category, limit = 5) {
   const subs = SUBREDDITS[category]
   if (!subs) return []
   const sub = subs[Math.floor(Math.random() * subs.length)]
   try {
-    const res = await fetch(
-      `https://www.reddit.com/r/${sub}/hot.json?limit=${limit}&raw_json=1`,
-      { headers: { 'User-Agent': 'stonks-app/1.0' } }
-    )
+    const res = await fetch(`/api/reddit?sub=${sub}&limit=${limit}`)
     if (!res.ok) return []
     const data = await res.json()
+    if (!data?.data?.children) return []
     return data.data.children
       .map(post => post.data)
       .filter(post => !post.stickied && !post.over_18)
@@ -54,11 +53,10 @@ export async function fetchRedditPosts(category, limit = 5) {
 
 export async function fetchTrendingRedditPosts(limit = 15) {
   try {
-    const res = await fetch(
-      `https://www.reddit.com/r/popular/hot.json?limit=${limit}&raw_json=1`
-    )
+    const res = await fetch(`/api/reddit?sub=popular&limit=${limit}`)
     if (!res.ok) return []
     const data = await res.json()
+    if (!data?.data?.children) return []
     return data.data.children
       .map(post => post.data)
       .filter(post => !post.stickied && !post.over_18)
