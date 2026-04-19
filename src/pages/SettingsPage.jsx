@@ -297,12 +297,44 @@ function PrivacySection() {
 
 function NotificationsSection() {
   const { muted, toggleMute } = useNotifications()
+  const { lang } = useLang()
+  const { user } = useUser()
   const [bancadaPush, setBancadaPush] = useLocalStorage('stonks_notif_bancada', true)
   const [pumpPush, setPumpPush] = useLocalStorage('stonks_notif_pump', true)
   const [socialPush, setSocialPush] = useLocalStorage('stonks_notif_social', true)
   const [marketPush, setMarketPush] = useLocalStorage('stonks_notif_market', true)
   const [dndStart, setDndStart] = useLocalStorage('stonks_dnd_start', '')
   const [dndEnd, setDndEnd] = useLocalStorage('stonks_dnd_end', '')
+  const [ttsStatus, setTtsStatus] = useState(null) // 'testing' | 'ok' | 'err:msg'
+
+  const testVoice = async () => {
+    setTtsStatus('testing')
+    const firstName = (user?.displayName || '').split(' ')[0] || 'voce'
+    const text = lang === 'pt'
+      ? `Oi ${firstName}! Voce acabou de ativar o agente de voz do STONKS. Funcionando perfeitamente.`
+      : `Hi ${firstName}! You just activated the STONKS voice agent. Working perfectly.`
+    try {
+      const r = await fetch(`/api/tts?text=${encodeURIComponent(text)}&lang=${lang}`)
+      if (r.status === 503) {
+        const data = await r.json()
+        setTtsStatus(`err:ELEVENLABS_API_KEY nao configurada no Vercel`)
+        return
+      }
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}))
+        setTtsStatus(`err:${data.error || r.status}`)
+        return
+      }
+      const blob = await r.blob()
+      const audio = new Audio(URL.createObjectURL(blob))
+      audio.volume = 0.8
+      await audio.play()
+      setTtsStatus('ok')
+      setTimeout(() => setTtsStatus(null), 3000)
+    } catch (e) {
+      setTtsStatus(`err:${e.message}`)
+    }
+  }
 
   return (
     <div>
@@ -337,6 +369,38 @@ function NotificationsSection() {
           <input type="time" value={dndEnd} onChange={(e) => setDndEnd(e.target.value)}
             className="flex-1 min-w-0 bg-surface-hover border border-border rounded-lg px-2 py-2 text-xs text-text-primary font-mono-stonks" />
         </div>
+      </div>
+
+      {/* 🎙️ ElevenLabs voice agent — teste + status */}
+      <SectionTitle>Agente de voz (ElevenLabs)</SectionTitle>
+      <div className="bg-surface border-y border-border px-4 py-3 space-y-3">
+        <div>
+          <p className="text-text-primary text-sm font-medium">Saudacao falada ao logar</p>
+          <p className="text-text-muted text-xs mt-1">
+            Ao entrar no STONKS voce ouve um audio personalizado (lingua da conta + hora do dia + seu nome).
+            Requer ELEVENLABS_API_KEY configurada no Vercel.
+          </p>
+        </div>
+        <button
+          onClick={testVoice}
+          disabled={ttsStatus === 'testing'}
+          className={`w-full py-2.5 rounded-lg text-xs font-mono-stonks font-bold uppercase tracking-wider cursor-pointer transition-colors flex items-center justify-center gap-2
+            ${ttsStatus === 'ok' ? 'bg-money text-[#0a0a0f]' :
+              ttsStatus?.startsWith('err:') ? 'bg-loss/15 text-loss border border-loss/30' :
+              'bg-money/15 text-money border border-money/30 hover:bg-money/25'}
+            disabled:opacity-60`}
+        >
+          <Volume2 size={14} />
+          {ttsStatus === 'testing' ? 'Chamando API...' :
+           ttsStatus === 'ok' ? '✓ Funcionou! Audio tocando' :
+           ttsStatus?.startsWith('err:') ? `✗ ${ttsStatus.slice(4)}` :
+           'Testar voz agora'}
+        </button>
+        <p className="text-text-tertiary text-[10px] leading-relaxed">
+          <span className="text-text-secondary">Setup:</span> Vercel → Settings → Environment Variables →
+          adicionar <span className="font-mono-stonks text-money">ELEVENLABS_API_KEY</span> com sua chave.
+          Depois: ultimo deploy → ⋮ → Redeploy.
+        </p>
       </div>
     </div>
   )
