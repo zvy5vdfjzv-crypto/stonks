@@ -8,6 +8,11 @@ import '@fontsource-variable/space-grotesk'
 import './index.css'
 import App from './App.jsx'
 
+// 🎙️ Flag global de 1a interacao — destravar autoplay de TTS/sons na hora certa
+;['click', 'touchstart', 'keydown'].forEach(evt => {
+  window.addEventListener(evt, () => { window.__stonks_user_interacted = true }, { once: true, capture: true })
+})
+
 // ⚙️ Aplicar settings salvas ANTES de renderizar — evita flash de tema/tamanho errado
 try {
   // Tema (dark/light)

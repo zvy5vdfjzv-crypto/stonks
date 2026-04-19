@@ -10,6 +10,7 @@ import { ChatProvider } from './context/ChatContext'
 import { NotificationProvider } from './context/NotificationContext'
 import PushNotifications from './components/notifications/PushNotifications'
 import NotificationBridge from './components/notifications/NotificationBridge'
+import WelcomeVoice from './components/ui/WelcomeVoice'
 import SplashScreen from './components/ui/SplashScreen'
 import Header from './components/layout/Header'
 import BottomNav from './components/layout/BottomNav'
@@ -99,6 +100,7 @@ function MainApp() {
             <ChatSidePanel />
             <PushNotifications />
             <NotificationBridge />
+            <WelcomeVoice />
           </div>
         </BrowserRouter>
         </NotificationProvider>

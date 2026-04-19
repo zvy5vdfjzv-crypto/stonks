@@ -687,8 +687,11 @@ function AboutSection() {
       <div className="bg-surface border-y border-border">
         <Row icon={Info} label="Versao" desc={APP_VERSION} />
         <div className="border-t border-border/40" />
-        <Row icon={Code2} label="Codigo fonte" desc="github.com/zvy5vdfjzv-crypto/stonks" right={<ChevronRight size={16} className="text-text-muted" />}
-          onClick={() => window.open('https://github.com/zvy5vdfjzv-crypto/stonks', '_blank')} />
+        <Row icon={Code2} label="Codigo fonte" desc="github.com/zvy5vdfjzv-crypto/stonks — toque pra copiar" right={<ChevronRight size={16} className="text-text-muted" />}
+          onClick={() => {
+            navigator.clipboard?.writeText('https://github.com/zvy5vdfjzv-crypto/stonks').catch(() => {})
+            alert('Link copiado! Cole em outra aba.')
+          }} />
       </div>
 
       <SectionTitle>Legal</SectionTitle>

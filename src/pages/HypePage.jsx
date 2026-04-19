@@ -10,6 +10,7 @@ import { fetchYouTubeTrending, isYouTubeConfigured } from '../services/youtubeFe
 import { useUser } from '../context/UserContext'
 import { useLang } from '../context/LanguageContext'
 import useTranslated from '../hooks/useTranslated'
+import NewsReaderModal from '../components/ui/NewsReaderModal'
 
 const ALL_CATEGORIES = ['memes', 'finance', 'tech', 'ai', 'viral', 'gaming', 'music', 'cars', 'sports', 'influencer']
 
@@ -30,21 +31,20 @@ function timeAgo(ts) {
   return `${Math.floor(secs / 86400)}d`
 }
 
-function ContentCard({ item, isNew }) {
+function ContentCard({ item, isNew, onOpen }) {
   const meta = SOURCE_META[item.source] || SOURCE_META.reddit
   const MetaIcon = meta.icon
   const img = item.thumbnail || item.preview
-  // 🌐 Traduz titulo pra lingua do user (description mantida original — economiza quota MyMemory)
   const translatedTitle = useTranslated(item.title, 'en')
   return (
-    <motion.a
-      href={item.permalink || item.url}
-      target="_blank" rel="noopener noreferrer"
+    <motion.button
+      type="button"
+      onClick={() => onOpen(item)}
       layout
       initial={isNew ? { opacity: 0, y: -20, scale: 0.95 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       whileHover={{ y: -2 }}
-      className={`block bg-surface border rounded-xl overflow-hidden transition-all no-underline group
+      className={`block bg-surface border rounded-xl overflow-hidden transition-all text-left cursor-pointer w-full
         ${isNew ? 'border-money glow-money' : 'border-border hover:border-money/40'}`}
     >
       {img && (
@@ -92,7 +92,7 @@ function ContentCard({ item, isNew }) {
           <ArrowUpRight size={11} className="ml-auto text-money opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
-    </motion.a>
+    </motion.button>
   )
 }
 
@@ -109,6 +109,7 @@ export default function HypePage() {
   const [refreshing, setRefreshing] = useState(false)
   const [newItemIds, setNewItemIds] = useState(new Set()) // IDs marcados como 'NEW' pra badge
   const [lastUpdateTs, setLastUpdateTs] = useState(0)
+  const [readerItem, setReaderItem] = useState(null) // item aberto no modal leitor
 
   // 🔥 Merge — preserva items existentes, marca novos com NEW badge
   const mergeItems = (prev, incoming) => {
@@ -261,6 +262,7 @@ export default function HypePage() {
                 key={`${item.source}-${item.id}`}
                 item={item}
                 isNew={newItemIds.has(`${item.source}-${item.id}`)}
+                onOpen={setReaderItem}
               />
             ))}
           </div>
@@ -276,6 +278,9 @@ export default function HypePage() {
         <p className="pt-1">❌ <span className="text-text-primary">Instagram · X · TikTok · LinkedIn</span> · APIs pagas/restritas. Nao integradas.</p>
         <p className="text-text-tertiary pt-1">Auto-refresh a cada 5min · ultima atualizacao: {new Date().toLocaleTimeString('pt-BR')}</p>
       </div>
+
+      {/* 📰 Leitor in-app — expand no lugar de redirecionar */}
+      <NewsReaderModal item={readerItem} onClose={() => setReaderItem(null)} />
     </div>
   )
 }
