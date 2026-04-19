@@ -374,11 +374,33 @@ function AppearanceSection() {
                 icon={Globe}
                 label={`${current.flag} ${current.native}`}
                 desc={isAutoDetected
-                  ? `Auto-detectado${geo?.country ? ` · ${geo.country}${geo.city ? ', ' + geo.city : ''}` : ''}`
-                  : 'Definido manualmente · clique pra trocar'}
+                  ? `🌍 Auto-detectado${geo?.country ? ` · ${geo.country}${geo.city ? ', ' + geo.city : ''}` : ''}`
+                  : '🔒 Definido manualmente'}
                 right={<ChevronRight size={16} className={`text-text-muted transition-transform ${showLangs ? 'rotate-90' : ''}`} />}
                 onClick={() => setShowLangs(!showLangs)}
               />
+              {/* Botao pra resetar pra auto-detect se user esta em manual */}
+              {!isAutoDetected && (
+                <div className="px-4 py-2 border-t border-border/40">
+                  <button
+                    onClick={() => {
+                      try {
+                        localStorage.removeItem('stonks_lang')
+                        localStorage.removeItem('stonks_lang_source')
+                      } catch {}
+                      window.location.reload()
+                    }}
+                    className="w-full py-2 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider
+                      bg-money/10 text-money border border-money/30 hover:bg-money/20 transition-colors cursor-pointer
+                      flex items-center justify-center gap-2"
+                  >
+                    🌍 Detectar automaticamente
+                  </button>
+                  <p className="text-text-muted text-[10px] text-center mt-1.5">
+                    Reseta e recarrega pra usar idioma do seu pais
+                  </p>
+                </div>
+              )}
               <AnimatePresence>
                 {showLangs && (
                   <motion.div

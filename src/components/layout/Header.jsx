@@ -104,14 +104,7 @@ export default function Header({ onCreateMeme, onOpenMenu }) {
             <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
           </div>
 
-          <button
-            onClick={toggleLang}
-            className="bg-surface border border-border rounded-lg px-2 py-1.5 text-[10px]
-              font-semibold text-text-secondary hover:text-text-primary hover:border-accent/50
-              transition-all cursor-pointer"
-          >
-            {lang === 'pt' ? '🇺🇸' : '🇧🇷'}
-          </button>
+          {/* Bandeira legada removida — sistema multi-lang vive em Settings → Aparencia → Idioma */}
 
           {/* Profile menu button */}
           <div className="relative">
