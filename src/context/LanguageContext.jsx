@@ -57,25 +57,28 @@ function wasManuallySet() {
   } catch { return false }
 }
 
-async function detectByGeo(timeoutMs = 2500) {
+async function detectByGeo(timeoutMs = 4000) {
   try {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), timeoutMs)
-    const r = await fetch('/api/geo', { signal: ctrl.signal, cache: 'force-cache' })
+    const r = await fetch('/api/geo', { signal: ctrl.signal })
     clearTimeout(timer)
     if (!r.ok) return null
     const data = await r.json()
     if (data?.language && translations[data.language]) {
       return { lang: data.language, country: data.country, city: data.city }
     }
-  } catch {}
+  } catch (e) {
+    console.warn('[geo] detection failed:', e.message)
+  }
   return null
 }
 
 const LanguageContext = createContext()
 
 export function LanguageProvider({ children }) {
-  // Init: carrega saved imediato (evita flash), depois re-detecta via geo se necessario
+  // Init: saved lang manual > browser lang (pra primeira render nao ter flash)
+  // Geo sobrescreve post-mount se != manual.
   const [lang, setLangState] = useState(() => loadSavedLang() || detectBrowserLang())
   const [geo, setGeo] = useState(null) // { country, city }
 
@@ -92,23 +95,30 @@ export function LanguageProvider({ children }) {
     setLang(lang === 'pt' ? 'en' : 'pt')
   }, [lang, setLang])
 
-  // 🌍 Geo detection — apenas na primeira visita OU se nao tem override manual
+  // 🌍 Geo detection — sempre tenta na primeira visita a menos que user tenha
+  // escolhido manualmente. Mais autoritativo que navigator.language porque
+  // reflete LOCALIZACAO real, nao preferencia do Chrome.
   useEffect(() => {
-    const saved = loadSavedLang()
-    const manual = wasManuallySet()
-    // Se user escolheu manualmente, respeita — nao sobrescreve
-    if (manual) return
-    // Se nao tem saved, faz detecao completa
+    if (wasManuallySet()) {
+      console.info('[geo] respeitando escolha manual:', lang)
+      return
+    }
     detectByGeo().then(result => {
-      if (!result) return
+      if (!result) {
+        console.info('[geo] falhou, mantendo:', lang)
+        return
+      }
+      console.info('[geo] detectado:', result)
       setGeo({ country: result.country, city: result.city })
-      // Se a lingua detectada e diferente da atual, atualiza (source=auto)
       if (result.lang && result.lang !== lang) {
         setLangState(result.lang)
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(result.lang))
           localStorage.setItem(STORAGE_SOURCE, JSON.stringify('auto'))
         } catch {}
+      } else {
+        // Mesma lingua — marca como 'auto' pra consistencia
+        try { localStorage.setItem(STORAGE_SOURCE, JSON.stringify('auto')) } catch {}
       }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
