@@ -135,6 +135,24 @@ export function GameProvider({ children, lang }) {
         console.warn('trade_meme error:', error.message)
         return { success: false, error: error.message }
       }
+      // ⚡ Update otimista do saldo — profiles nao esta em supabase_realtime
+      // por padrao, entao precisamos aplicar localmente.
+      if (data?.success && typeof data.total_cost === 'number') {
+        setBalance(prev => {
+          const next = action === 'buy'
+            ? prev - Number(data.total_cost)
+            : prev + Number(data.total_cost)
+          return Number(next.toFixed(2))
+        })
+      }
+      // Refetch como garantia (se RPC response estiver incompleta)
+      supabase.from('profiles')
+        .select('hype_coins_balance')
+        .eq('id', user.id)
+        .single()
+        .then(({ data: profile }) => {
+          if (profile) setBalance(Number(profile.hype_coins_balance))
+        })
       return data || { success: true }
     } catch (err) {
       console.error('trade RPC exception:', err)
