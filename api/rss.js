@@ -3,13 +3,12 @@
 
 const ALLOWED_HOSTS = [
   'infomoney.com.br', 'valor.globo.com', 'br.cointelegraph.com',
-  'theverge.com', 'techcrunch.com', 'tecmundo.com.br',
+  'theverge.com', 'techcrunch.com', 'arstechnica.com', 'feeds.arstechnica.com',
   'technologyreview.com', 'venturebeat.com',
-  'ign.com', 'kotaku.com', 'polygon.com',
+  'kotaku.com', 'polygon.com',
   'knowyourmeme.com',
   'pitchfork.com', 'rollingstone.com',
-  'br.motor1.com', 'flatout.com.br',
-  'ge.globo.com', 'espn.com.br',
+  'flatout.com.br',
   'buzzfeed.com',
   'eonline.com',
   'g1.globo.com', 'uol.com.br', 'rss.uol.com.br',
