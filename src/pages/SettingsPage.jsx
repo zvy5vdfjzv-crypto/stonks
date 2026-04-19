@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ChevronRight, User, Lock, Bell, Palette, TrendingUp, Shield, Database, Info,
-  Moon, Sun, Type, Globe, Download, Trash2, LogOut, Check, Volume2, VolumeX, Vibrate,
-  Eye, EyeOff, AtSign, Activity, Code2, AlertTriangle, Monitor
+  Moon, Sun, Type, Globe, Download, Trash2, LogOut, Check, Volume2, VolumeX,
+  Eye, EyeOff, AtSign, Activity, Code2, AlertTriangle, Monitor, X
 } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import { useLang } from '../context/LanguageContext'
@@ -72,18 +72,147 @@ function SectionTitle({ children }) {
 // ========== SECTIONS ==========
 
 function AccountSection() {
-  const { user, logout } = useUser()
-  const navigate = useNavigate()
+  const { user, updateProfile } = useUser()
+  const [editingField, setEditingField] = useState(null) // 'name' | 'handle' | 'bio' | null
+  const [displayName, setDisplayName] = useState(user?.displayName || '')
+  const [handle, setHandle] = useState(user?.handle?.replace('@', '') || '')
+  const [bio, setBio] = useState(user?.bio || '')
+  const [status, setStatus] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const saveField = (field) => {
+    if (field === 'name') updateProfile({ displayName: displayName.trim() })
+    else if (field === 'handle') updateProfile({ handle: handle.replace(/[^a-z0-9_]/gi, '').toLowerCase() })
+    else if (field === 'bio') updateProfile({ bio: bio.trim() })
+    setEditingField(null)
+    setStatus({ type: 'ok', msg: 'Salvo!' })
+    setTimeout(() => setStatus(null), 1500)
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); setTimeout(() => setConfirmDelete(false), 4000); return }
+    setDeleting(true)
+    try {
+      // Delete profile (CASCADE apaga transactions vinculadas)
+      await supabase.from('profiles').delete().eq('id', user.id)
+      // Limpa session + localStorage local
+      await supabase.auth.signOut()
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('stonks_')) localStorage.removeItem(k)
+      })
+      window.location.href = '/'
+    } catch (err) {
+      alert('Erro ao deletar conta: ' + (err.message || 'desconhecido'))
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
+  }
 
   return (
     <div>
+      {status && (
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-money/15 border border-money/30 text-money text-xs font-mono-stonks uppercase tracking-wider text-center">
+          ✓ {status.msg}
+        </div>
+      )}
+
       <SectionTitle>Perfil</SectionTitle>
-      <div className="bg-surface border-y border-border">
-        <Row icon={User} label="Nome" desc={user?.displayName} right={<ChevronRight size={16} className="text-text-muted" />} onClick={() => navigate('/insights')} />
-        <div className="border-t border-border/40" />
-        <Row icon={AtSign} label="@ (handle)" desc={user?.handle} right={<ChevronRight size={16} className="text-text-muted" />} onClick={() => navigate('/insights')} />
-        <div className="border-t border-border/40" />
+      <div className="bg-surface border-y border-border divide-y divide-border/40">
+        {/* Nome — inline edit */}
+        <div>
+          <Row
+            icon={User}
+            label="Nome"
+            desc={editingField !== 'name' ? (user?.displayName || 'Sem nome') : 'Editando...'}
+            right={editingField !== 'name' && <ChevronRight size={16} className="text-text-muted" />}
+            onClick={() => { setEditingField(editingField === 'name' ? null : 'name'); setDisplayName(user?.displayName || '') }}
+          />
+          <AnimatePresence>
+            {editingField === 'name' && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="px-4 pb-3 space-y-2">
+                  <input
+                    type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
+                    maxLength={40}
+                    placeholder="Como querem te chamar?"
+                    className="w-full bg-surface-hover border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-money/50"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingField(null)} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-surface-hover border border-border text-text-muted cursor-pointer hover:text-text-primary">Cancelar</button>
+                    <button onClick={() => saveField('name')} disabled={!displayName.trim()} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-money text-[#0a0a0f] cursor-pointer hover:bg-money-dim disabled:opacity-40 disabled:cursor-not-allowed">Salvar</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Handle — inline edit */}
+        <div>
+          <Row
+            icon={AtSign}
+            label="@ (handle)"
+            desc={editingField !== 'handle' ? (user?.handle || '@sem-handle') : 'Editando...'}
+            right={editingField !== 'handle' && <ChevronRight size={16} className="text-text-muted" />}
+            onClick={() => { setEditingField(editingField === 'handle' ? null : 'handle'); setHandle(user?.handle?.replace('@','') || '') }}
+          />
+          <AnimatePresence>
+            {editingField === 'handle' && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="px-4 pb-3 space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-money font-bold text-sm">@</span>
+                    <input
+                      type="text" value={handle}
+                      onChange={e => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
+                      maxLength={20} placeholder="seunick"
+                      className="w-full bg-surface-hover border border-border rounded-lg pl-8 pr-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-money/50 font-mono-stonks"
+                      autoFocus
+                    />
+                  </div>
+                  <p className="text-text-muted text-[10px]">Somente letras minusculas, numeros e underscore</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingField(null)} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-surface-hover border border-border text-text-muted cursor-pointer hover:text-text-primary">Cancelar</button>
+                    <button onClick={() => saveField('handle')} disabled={handle.length < 2} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-money text-[#0a0a0f] cursor-pointer hover:bg-money-dim disabled:opacity-40 disabled:cursor-not-allowed">Salvar</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Bio — inline edit */}
+        <div>
+          <Row
+            icon={Activity}
+            label="Bio"
+            desc={editingField !== 'bio' ? (user?.bio || 'Sem bio ainda') : 'Editando...'}
+            right={editingField !== 'bio' && <ChevronRight size={16} className="text-text-muted" />}
+            onClick={() => { setEditingField(editingField === 'bio' ? null : 'bio'); setBio(user?.bio || '') }}
+          />
+          <AnimatePresence>
+            {editingField === 'bio' && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                <div className="px-4 pb-3 space-y-2">
+                  <textarea
+                    value={bio} onChange={e => setBio(e.target.value)} maxLength={160} rows={3}
+                    placeholder="Conta algo sobre voce..."
+                    className="w-full bg-surface-hover border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-money/50 resize-none"
+                    autoFocus
+                  />
+                  <p className="text-text-muted text-[10px] text-right">{bio.length}/160</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingField(null)} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-surface-hover border border-border text-text-muted cursor-pointer hover:text-text-primary">Cancelar</button>
+                    <button onClick={() => saveField('bio')} className="flex-1 py-1.5 rounded-lg text-[11px] font-mono-stonks font-bold uppercase tracking-wider bg-money text-[#0a0a0f] cursor-pointer hover:bg-money-dim">Salvar</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         <Row icon={Globe} label="Email" desc={user?.email} />
       </div>
 
@@ -101,13 +230,9 @@ function AccountSection() {
       <div className="bg-surface border-y border-border">
         <Row
           icon={Trash2} danger
-          label={confirmDelete ? 'Tem certeza? Tap de novo' : 'Deletar conta'}
-          desc={confirmDelete ? 'Apaga tudo permanentemente' : 'Remove dados, holdings, historico'}
-          onClick={async () => {
-            if (!confirmDelete) { setConfirmDelete(true); setTimeout(() => setConfirmDelete(false), 4000); return }
-            alert('Delecao de conta — contato @pedronhobrab@gmail.com pra processar (em breve automatico)')
-            setConfirmDelete(false)
-          }}
+          label={deleting ? 'Deletando...' : confirmDelete ? 'Tap de novo pra confirmar' : 'Deletar conta'}
+          desc={confirmDelete ? 'Apaga perfil, historico e sai' : 'Remove dados, holdings, transactions'}
+          onClick={handleDeleteAccount}
         />
       </div>
     </div>
@@ -211,7 +336,7 @@ function AppearanceSection() {
   }, [fontSize])
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--motion-reduce', reduceMotion ? '1' : '0')
+    document.documentElement.classList.toggle('reduce-motion', reduceMotion)
   }, [reduceMotion])
 
   return (
@@ -392,7 +517,88 @@ function DataSection() {
   )
 }
 
+function LegalModal({ open, title, body, onClose }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+          onClick={onClose}>
+          <motion.div
+            initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+            className="bg-[var(--bg-elevated)] border border-border rounded-2xl p-5 max-w-lg w-full max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-text-primary text-lg">{title}</h3>
+              <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-surface-hover flex items-center justify-center cursor-pointer">
+                <X size={16} className="text-text-muted" />
+              </button>
+            </div>
+            <div className="text-text-secondary text-sm leading-relaxed space-y-3 whitespace-pre-wrap">{body}</div>
+            <button onClick={onClose}
+              className="mt-5 w-full py-2.5 rounded-lg bg-money text-[#0a0a0f] font-mono-stonks font-bold uppercase tracking-wider text-xs cursor-pointer hover:bg-money-dim">
+              Entendi
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+const TERMS_BODY = `O STONKS e uma plataforma gamificada de simulacao de mercado de memes.
+
+1. NATUREZA DO PRODUTO
+Todo o "dinheiro" usado (HypeCoins / S$) e virtual. Nao ha dinheiro real envolvido. NAO E uma plataforma de investimento. NAO constitui conselho financeiro. NAO oferece rendimento real.
+
+2. USO ACEITAVEL
+Voce concorda em nao usar o app pra:
+- Fraude, abuso, assedio
+- Spam ou automacao nao autorizada
+- Engenharia reversa da economia (multi-conta pra manipular precos)
+
+3. CONTEUDO DO USER
+Voce mantem direitos sobre o que posta. Concede ao STONKS licenca pra exibir dentro da plataforma.
+
+4. BANIMENTO
+Contas com comportamento abusivo podem ser banidas sem aviso.
+
+5. LIMITACAO DE RESPONSABILIDADE
+O STONKS e fornecido "como esta". Nao garantimos disponibilidade continua.
+
+6. MUDANCAS
+Estes termos podem mudar. Uso continuado = aceitacao dos novos termos.`
+
+const PRIVACY_BODY = `POLITICA DE PRIVACIDADE
+
+1. DADOS COLETADOS
+- Email (pra autenticacao)
+- Nome, handle, bio, avatar (voce escolhe)
+- Historico de transacoes no app (pra calcular holdings)
+- Preferencias (tema, idioma) — salvas no seu device
+
+2. COMO USAMOS
+Exclusivamente pra fazer o app funcionar (login, exibir seu perfil, calcular portfolio). Nao vendemos dados. Nao compartilhamos com anunciantes.
+
+3. ARMAZENAMENTO
+Dados ficam em Supabase (infra hospedada no AWS). Senhas sao criptografadas via bcrypt.
+
+4. SEU CONTROLE
+Voce pode:
+- Baixar todos seus dados (Settings → Meus dados → Baixar)
+- Deletar conta a qualquer momento (Settings → Conta → Zona perigosa)
+- Trocar preferencias a qualquer momento
+
+5. COOKIES / LOCALSTORAGE
+Usamos localStorage pra salvar tema, idioma, toggles de notificacao e mute. Nao usamos cookies de rastreamento.
+
+6. CONTATO
+pedronhobrab@gmail.com`
+
 function AboutSection() {
+  const [legal, setLegal] = useState(null) // 'terms' | 'privacy' | null
+
   return (
     <div>
       <SectionTitle>STONKS</SectionTitle>
@@ -405,9 +611,9 @@ function AboutSection() {
 
       <SectionTitle>Legal</SectionTitle>
       <div className="bg-surface border-y border-border">
-        <Row icon={Info} label="Termos de uso" desc="Ler termos" onClick={() => alert('Em breve')} />
+        <Row icon={Info} label="Termos de uso" desc="Ler termos" right={<ChevronRight size={16} className="text-text-muted" />} onClick={() => setLegal('terms')} />
         <div className="border-t border-border/40" />
-        <Row icon={Lock} label="Politica de privacidade" onClick={() => alert('Em breve')} />
+        <Row icon={Lock} label="Politica de privacidade" right={<ChevronRight size={16} className="text-text-muted" />} onClick={() => setLegal('privacy')} />
       </div>
 
       <div className="px-4 py-6 text-center">
@@ -416,6 +622,13 @@ function AboutSection() {
           Isso nao e conselho financeiro. E um jogo.
         </p>
       </div>
+
+      <LegalModal
+        open={legal !== null}
+        title={legal === 'terms' ? 'Termos de uso' : 'Politica de privacidade'}
+        body={legal === 'terms' ? TERMS_BODY : PRIVACY_BODY}
+        onClose={() => setLegal(null)}
+      />
     </div>
   )
 }

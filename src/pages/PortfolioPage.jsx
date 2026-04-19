@@ -38,7 +38,11 @@ export default function PortfolioPage() {
   const { balance, holdings, transactions, trends, getPortfolioValue, getTotalPnL, initialBalance, sellAll, pendingTrades } = useGame()
   const { t } = useLang()
   const navigate = useNavigate()
-  const [liquidating, setLiquidating] = useState(null) // id being liquidated
+  const [liquidating, setLiquidating] = useState(null)
+  // Settings toggle: mostrar sparklines nas posicoes
+  const showSparklines = (() => {
+    try { const v = localStorage.getItem('stonks_show_sparklines'); return v === null ? true : JSON.parse(v) } catch { return true }
+  })()
 
   const handlePanicSell = async (e, memeId, pnl) => {
     e.stopPropagation()
@@ -191,10 +195,12 @@ export default function PortfolioPage() {
                   </p>
                 </div>
 
-                {/* Sparkline inline — cara de terminal */}
-                <div className="flex-1 min-w-0 h-8 hidden sm:block">
-                  <SparkLine data={h.trend.priceHistory.slice(-24)} positive={isUp} />
-                </div>
+                {/* Sparkline inline — controlado por Settings → Mercado */}
+                {showSparklines && (
+                  <div className="flex-1 min-w-0 h-8 hidden sm:block">
+                    <SparkLine data={h.trend.priceHistory.slice(-24)} positive={isUp} />
+                  </div>
+                )}
 
                 {/* Valor + PnL mono */}
                 <div className="text-right shrink-0">

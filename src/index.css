@@ -182,6 +182,16 @@ body { overscroll-behavior-y: contain; }
 }
 .page-enter { animation: fadeSlideIn 0.3s ease-out; }
 
+/* ♿ Acessibilidade — reduzir animacoes quando user ativa em Settings */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* Neon glow suave pro HOT PUMP (laranja hype) */
 @keyframes neon-glow {
   0%, 100% { box-shadow: 0 0 8px var(--color-hype-glow); }

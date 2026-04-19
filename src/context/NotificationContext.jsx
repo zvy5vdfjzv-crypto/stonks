@@ -63,10 +63,48 @@ export function NotificationProvider({ children }) {
     haptics.setMuted(muted)
   }, [muted])
 
+  // 🌙 Helpers — checar se tipo esta permitido + se nao ta em DND
+  const isTypeAllowed = (type) => {
+    // Mapeia type do notification pro toggle de push
+    // Types: bancada/like/comment/follow/price_up/price_down/boost/news/trade/meme
+    const category =
+      type === 'bancada' ? 'bancada' :
+      (type === 'price_up' || type === 'price_down') ? 'pump' :
+      (type === 'like' || type === 'comment' || type === 'follow' || type === 'meme') ? 'social' :
+      (type === 'news' || type === 'boost' || type === 'trade') ? 'market' :
+      'default'
+    const flag = localStorage.getItem(`stonks_notif_${category}`)
+    if (flag === null) return true // default ON
+    try { return JSON.parse(flag) } catch { return true }
+  }
+
+  const isQuietHours = () => {
+    try {
+      const start = JSON.parse(localStorage.getItem('stonks_dnd_start') || '""')
+      const end = JSON.parse(localStorage.getItem('stonks_dnd_end') || '""')
+      if (!start || !end) return false
+      const now = new Date()
+      const [sh, sm] = start.split(':').map(Number)
+      const [eh, em] = end.split(':').map(Number)
+      const nowMin = now.getHours() * 60 + now.getMinutes()
+      const startMin = sh * 60 + sm
+      const endMin = eh * 60 + em
+      // Intervalo normal (ex 08:00-22:00) OU wrap over midnight (22:00-08:00)
+      return startMin <= endMin
+        ? (nowMin >= startMin && nowMin < endMin)
+        : (nowMin >= startMin || nowMin < endMin)
+    } catch {
+      return false
+    }
+  }
+
   const addNotification = useCallback((type, title, body, options = {}) => {
-    dispatch({ type: 'ADD_NOTIFICATION', payload: { type, title, body, silent: muted || options.silent } })
-    // 🎵 Som de notificacao (exceto se silent)
-    if (!muted && !options.silent) {
+    const typeAllowed = isTypeAllowed(type)
+    const quiet = isQuietHours()
+    // Sempre adiciona no panel (historico); mas silencia push+som quando bloqueado
+    const silent = muted || options.silent || !typeAllowed || quiet
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { type, title, body, silent } })
+    if (!silent) {
       const toneMap = { bancada: 'market', like: 'like', comment: 'social', follow: 'social', price_up: 'price_up', price_down: 'price_down', boost: 'market', news: 'market', trade: 'market', meme: 'social' }
       sound.ding(toneMap[type] || 'default')
     }

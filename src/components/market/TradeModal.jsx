@@ -31,6 +31,12 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
 
   const handleTrade = async () => {
     setError(null)
+    // 🛡️ Confirm trades (setting em /settings → Mercado)
+    const confirmOn = localStorage.getItem('stonks_confirm_trades')
+    if (confirmOn === 'true') {
+      const action = activeTab === 'buy' ? 'COMPRAR' : 'VENDER'
+      if (!window.confirm(`${action} ${qty}x ${trend.ticker} por S$ ${total.toFixed(2)}?`)) return
+    }
     setSubmitting(true)
     let res
     if (activeTab === 'buy' && canBuy) {
