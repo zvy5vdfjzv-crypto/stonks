@@ -34,8 +34,8 @@ export default function NewsTicker() {
         </div>
       )}
 
-      {/* Ticker scrolling */}
-      <div className="flex animate-ticker-scroll whitespace-nowrap will-change-transform">
+      {/* Ticker scrolling — translate=no pra nao traduzir $MOON em $LUA etc */}
+      <div translate="no" className="flex animate-ticker-scroll whitespace-nowrap will-change-transform">
         {loop.map((trend, i) => {
           const isUp = trend.change24h >= 0
           return (

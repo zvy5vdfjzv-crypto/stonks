@@ -73,6 +73,7 @@ export default function StonksLogo({ size = 32, showWordmark = true, wordmarkCla
 
   const wordmark = showWordmark ? (
     <span
+      translate="no"
       className={`font-display font-black italic tracking-tight leading-none ${wordmarkClassName}`}
       style={{ fontSize: wordSize }}
     >
