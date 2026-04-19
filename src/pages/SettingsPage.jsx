@@ -320,7 +320,8 @@ function NotificationsSection() {
 }
 
 function AppearanceSection() {
-  const { lang, toggleLang } = useLang()
+  const { lang, setLang, AVAILABLE_LANGUAGES } = useLang()
+  const [showLangs, setShowLangs] = useState(false)
   const [darkMode, setDarkMode] = useLocalStorage('stonks_theme_dark', true)
   const [fontSize, setFontSize] = useLocalStorage('stonks_fontsize', 'M')
   const [reduceMotion, setReduceMotion] = useLocalStorage('stonks_reduce_motion', false)
@@ -365,12 +366,46 @@ function AppearanceSection() {
 
       <SectionTitle>Idioma</SectionTitle>
       <div className="bg-surface border-y border-border">
-        <Row icon={Globe} label={lang === 'pt' ? 'Portugues (BR)' : 'English'} right={
-          <button onClick={toggleLang}
-            className="text-xs font-mono-stonks font-bold uppercase px-3 py-1 rounded-lg bg-surface-hover border border-border text-text-primary hover:border-money/40">
-            {lang === 'pt' ? '🇺🇸 EN' : '🇧🇷 PT'}
-          </button>
-        } />
+        {(() => {
+          const current = AVAILABLE_LANGUAGES.find(l => l.code === lang) || AVAILABLE_LANGUAGES[0]
+          return (
+            <div>
+              <Row
+                icon={Globe}
+                label={`${current.flag} ${current.native}`}
+                desc="Clique pra trocar"
+                right={<ChevronRight size={16} className={`text-text-muted transition-transform ${showLangs ? 'rotate-90' : ''}`} />}
+                onClick={() => setShowLangs(!showLangs)}
+              />
+              <AnimatePresence>
+                {showLangs && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden border-t border-border/40"
+                  >
+                    {AVAILABLE_LANGUAGES.map(l => (
+                      <button
+                        key={l.code}
+                        onClick={() => { setLang(l.code); setShowLangs(false) }}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors hover:bg-surface-hover border-t border-border/30 first:border-t-0
+                          ${l.code === lang ? 'bg-money/5' : ''}`}
+                      >
+                        <span className="text-xl">{l.flag}</span>
+                        <span className={`flex-1 text-left text-sm ${l.code === lang ? 'text-money font-semibold' : 'text-text-primary'}`}>
+                          {l.native}
+                        </span>
+                        <span className="text-text-muted text-[10px] font-mono-stonks uppercase">{l.code}</span>
+                        {l.code === lang && <Check size={14} className="text-money" strokeWidth={3} />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )
+        })()}
       </div>
 
       <SectionTitle>Acessibilidade</SectionTitle>

@@ -4,16 +4,18 @@
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Flame, MessageSquare, ShoppingBag, MessageCircle, Briefcase } from 'lucide-react'
+import { useLang } from '../../context/LanguageContext'
 
 const navItems = [
-  { path: '/', icon: Flame, label: 'Feed' },
-  { path: '/social', icon: MessageSquare, label: 'Social' },
-  { path: '/shop', icon: ShoppingBag, label: 'Loja', highlight: true },
-  { path: '/chat', icon: MessageCircle, label: 'Chat' },
-  { path: '/portfolio', icon: Briefcase, label: 'Portfolio' },
+  { path: '/', icon: Flame, labelKey: 'nav.feed' },
+  { path: '/social', icon: MessageSquare, labelKey: 'nav.social' },
+  { path: '/shop', icon: ShoppingBag, labelKey: 'nav.shop', highlight: true },
+  { path: '/chat', icon: MessageCircle, labelKey: 'nav.chat' },
+  { path: '/portfolio', icon: Briefcase, labelKey: 'nav.portfolio' },
 ]
 
 export default function BottomNav() {
+  const { t } = useLang()
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 backdrop-blur-xl bg-[var(--bg-app)]/80 border-t border-border/50">
       <div className="max-w-5xl mx-auto flex">
@@ -62,7 +64,7 @@ export default function BottomNav() {
                 <span className={isActive
                   ? 'font-mono-stonks font-bold uppercase tracking-wider'
                   : 'font-semibold'}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </>
             )}

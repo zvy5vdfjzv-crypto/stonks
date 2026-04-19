@@ -8,6 +8,7 @@ import { fetchMultiCategoryReddit, fetchRedditPosts } from '../services/redditFe
 import { fetchMultiCategoryNews, fetchNewsByCategory, NEWS_CATEGORIES } from '../services/newsFeeds'
 import { fetchYouTubeTrending, isYouTubeConfigured } from '../services/youtubeFeed'
 import { useUser } from '../context/UserContext'
+import { useLang } from '../context/LanguageContext'
 
 const ALL_CATEGORIES = ['memes', 'finance', 'tech', 'ai', 'viral', 'gaming', 'music', 'cars', 'sports', 'influencer']
 
@@ -16,6 +17,8 @@ const SOURCE_META = {
   news: { label: 'News', icon: Globe, color: '#3b82f6' },
   youtube: { label: 'YouTube', icon: Play, color: '#ff0000' },
 }
+
+const TAB_IDS = ['all', ...ALL_CATEGORIES]
 
 function timeAgo(ts) {
   if (!ts) return ''
@@ -76,13 +79,13 @@ function ContentCard({ item }) {
   )
 }
 
-const TABS = [
-  { id: 'all', label: 'Tudo' },
-  ...ALL_CATEGORIES.map(c => ({ id: c, label: c.charAt(0).toUpperCase() + c.slice(1) })),
-]
-
 export default function HypePage() {
   const { user } = useUser()
+  const { t } = useLang()
+  const TABS = [
+    { id: 'all', label: t('hype.all') },
+    ...ALL_CATEGORIES.map(c => ({ id: c, label: t(`categories.${c}`) })),
+  ]
   const [activeCategory, setActiveCategory] = useState('all')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -136,11 +139,11 @@ export default function HypePage() {
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-center gap-2 mb-1">
           <Flame size={22} className="text-hype" />
-          <h1 className="font-display font-black italic text-text-primary text-2xl">HYPE</h1>
-          <span className="ml-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider">LIVE</span>
+          <h1 translate="no" className="font-display font-black italic text-text-primary text-2xl">{t('hype.title')}</h1>
+          <span translate="no" className="ml-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider">{t('hype.live')}</span>
         </div>
         <p className="text-text-muted text-xs font-mono-stonks uppercase tracking-wider">
-          O que ta rolando no mundo · agora
+          {t('hype.subtitle')}
         </p>
       </div>
 
@@ -168,8 +171,8 @@ export default function HypePage() {
         <div className="mx-3 mt-3 bg-surface border border-border rounded-xl p-3 flex items-center gap-3">
           <Lock size={16} className="text-text-muted shrink-0" />
           <div className="flex-1 text-[11px] text-text-secondary">
-            <p className="font-semibold">YouTube desativado</p>
-            <p className="text-text-muted">Adicione <span className="font-mono-stonks text-money">VITE_YOUTUBE_API_KEY</span> em .env pra ativar videos trending.</p>
+            <p className="font-semibold">{t('hype.youtubeOff')}</p>
+            <p className="text-text-muted">{t('hype.youtubeOffDesc')}</p>
           </div>
         </div>
       )}
@@ -192,8 +195,8 @@ export default function HypePage() {
         ) : items.length === 0 ? (
           <div className="text-center py-16">
             <Globe size={32} className="text-text-muted mx-auto mb-2" />
-            <p className="text-text-secondary text-sm font-mono-stonks uppercase tracking-wider">Sem conteudo</p>
-            <p className="text-text-muted text-xs mt-1">Tenta outra categoria ou refresh</p>
+            <p className="text-text-secondary text-sm font-mono-stonks uppercase tracking-wider">{t('hype.noContent')}</p>
+            <p className="text-text-muted text-xs mt-1">{t('hype.noContentDesc')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

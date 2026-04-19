@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Shield, Settings, Eye, Clock, Moon, Sun, Type, ChevronRight, Lock, Users, AtSign, BarChart2, Flame } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
+import { useLang } from '../../context/LanguageContext'
 import { supabase } from '../../lib/supabase'
 import UserAvatar from '../ui/UserAvatar'
 import VerifiedBadge from '../ui/VerifiedBadge'
 
 export default function SideMenu({ isOpen, onClose, onNavigate }) {
   const { user, creatorTitle, updatePrivacy, addScreenTime } = useUser()
+  const { t } = useLang()
   const [activeSection, setActiveSection] = useState(null)
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('stonks_theme') !== 'light'
@@ -42,13 +44,13 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
   if (!user) return null
 
   const sections = [
-    { id: 'hype-live', icon: Flame, label: 'Hype ao vivo', color: 'text-hype', action: () => { onClose(); onNavigate?.('/hype') } },
-    { id: 'verification', icon: Shield, label: 'Verificação', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
-    { id: 'settings-full', icon: Settings, label: 'Configurações', action: () => { onClose(); onNavigate?.('/settings') } },
-    { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
-    { id: 'screentime', icon: Clock, label: 'Tempo de uso' },
-    { id: 'logout', icon: X, label: 'Sair da conta', color: 'text-red', action: async () => {
-      if (confirm('Tem certeza? Voce vai sair da conta.')) {
+    { id: 'hype-live', icon: Flame, label: t('nav.hype'), color: 'text-hype', action: () => { onClose(); onNavigate?.('/hype') } },
+    { id: 'verification', icon: Shield, label: t('nav.verification'), color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
+    { id: 'settings-full', icon: Settings, label: t('nav.settings'), action: () => { onClose(); onNavigate?.('/settings') } },
+    { id: 'activity', icon: Eye, label: t('nav.activity') },
+    { id: 'screentime', icon: Clock, label: t('nav.screentime') },
+    { id: 'logout', icon: X, label: t('auth.logout'), color: 'text-red', action: async () => {
+      if (confirm(t('auth.logoutConfirm'))) {
         localStorage.removeItem('stonks_notif_muted')
         await supabase.auth.signOut()
         window.location.href = '/'
