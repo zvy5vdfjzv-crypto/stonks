@@ -30,7 +30,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
               <div className="flex items-center gap-2">
-                <Bell size={16} className="text-accent" />
+                <Bell size={16} className="text-system" />
                 <span className="font-bold text-text-primary text-sm">Notificacoes</span>
                 {unreadCount > 0 && (
                   <span className="bg-red text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
@@ -52,7 +52,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
                 </button>
                 {unreadCount > 0 && (
                   <button onClick={markAllRead}
-                    className="text-accent text-[10px] font-medium cursor-pointer hover:underline flex items-center gap-1">
+                    className="text-system text-[10px] font-medium cursor-pointer hover:underline flex items-center gap-1">
                     <CheckCheck size={11} /> Ler tudo
                   </button>
                 )}
@@ -89,7 +89,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
                       onClick={() => markRead(notif.id)}
                       className={`flex items-start gap-3 px-4 py-3 border-b border-border/30 cursor-pointer
                         transition-colors hover:bg-surface-hover
-                        ${!notif.read ? 'bg-accent/5' : ''}`}
+                        ${!notif.read ? 'bg-system/5' : ''}`}
                     >
                       <span className="text-lg shrink-0 mt-0.5">{typeInfo.emoji}</span>
                       <div className="flex-1 min-w-0">
@@ -99,7 +99,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
                         <p className="text-text-muted text-[11px] mt-0.5 line-clamp-2">{notif.body}</p>
                         <p className="text-text-muted text-[9px] mt-1">{timeAgo(notif.time)}</p>
                       </div>
-                      {!notif.read && <span className="w-2 h-2 bg-accent rounded-full shrink-0 mt-2" />}
+                      {!notif.read && <span className="w-2 h-2 bg-system rounded-full shrink-0 mt-2" />}
                     </div>
                   )
                 })

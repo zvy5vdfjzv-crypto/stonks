@@ -4,6 +4,7 @@ import { Zap } from 'lucide-react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
 import CoinRain from '../ui/CoinRain'
+import BancadaHeroica from '../ui/BancadaHeroica'
 import { useGame } from '../../context/GameContext'
 import { useLang } from '../../context/LanguageContext'
 import { sound } from '../../lib/sound'
@@ -16,6 +17,7 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
   const [showCoinRain, setShowCoinRain] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [heroic, setHeroic] = useState(null) // qty pra mostrar no heroic
   const { balance, holdings, buy, sell, sellAll } = useGame()
   const { t } = useLang()
 
@@ -33,7 +35,11 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
     let res
     if (activeTab === 'buy' && canBuy) {
       res = await buy(trend.id, qty)
-      if (res?.success) { sound.register(); haptics.fire('medium') }
+      if (res?.success) {
+        sound.register(); haptics.fire('medium')
+        // 🔥 Mundo B — bancada heroica pra trades grandes (>= 5 cotas OU >= 50 HC)
+        if (qty >= 5 || total >= 50) { setHeroic(qty); sound.fanfare() }
+      }
     } else if (activeTab === 'sell' && canSell) {
       const profit = holding ? (trend.price - holding.avgPrice) * qty : 0
       res = await sell(trend.id, qty)
@@ -90,6 +96,7 @@ export default function TradeModal({ isOpen, onClose, trend, mode = 'buy' }) {
     <Modal isOpen={isOpen} onClose={onClose} title={`${trend.emoji} ${trend.name}`}>
       {/* 🧠 NEUROMARKETING: Chuva de moedas ao vender com lucro */}
       <CoinRain active={showCoinRain} onDone={() => setShowCoinRain(false)} />
+      <BancadaHeroica active={!!heroic} value={heroic} onDone={() => setHeroic(null)} />
       <AnimatePresence mode="wait">
         {showSuccess ? (
           <motion.div

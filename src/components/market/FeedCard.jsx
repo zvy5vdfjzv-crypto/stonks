@@ -6,6 +6,7 @@ import AnimatedNumber from '../ui/AnimatedNumber'
 import FlyingCoins from '../ui/FlyingCoins'
 import { sound } from '../../lib/sound'
 import { haptics } from '../../lib/haptics'
+import useMemeBackers from '../../hooks/useMemeBackers'
 import { useLang } from '../../context/LanguageContext'
 import { useGame } from '../../context/GameContext'
 import { useChat } from '../../context/ChatContext'
@@ -86,20 +87,8 @@ export default function FeedCard({ trend, onOpenStats }) {
   }
 
   const topBancadores = trend.socialProof?.topBancadores || []
-  const baseBancadas = trend.socialProof?.bancadas || 0
-
-  // 🧠 NEUROMARKETING: Contador social que incrementa em tempo real.
-  // Prova social dinamica — sempre parece que "mais gente ta entrando agora".
-  const [liveBancadas, setLiveBancadas] = useState(baseBancadas)
-  useEffect(() => {
-    if (baseBancadas === 0) return
-    const interval = setInterval(() => {
-      // Incremento proporcional a volatilidade — hot pumps ganham gente rapido
-      const rate = Math.abs(trend.change24h) > 15 ? 3 : Math.abs(trend.change24h) > 5 ? 1 : 0.5
-      setLiveBancadas(prev => prev + Math.max(1, Math.floor(Math.random() * rate * 3)))
-    }, 4000 + Math.random() * 4000)
-    return () => clearInterval(interval)
-  }, [baseBancadas, trend.change24h])
+  // 🧠 Contador REAL do DB — incrementa via realtime quando alguem compra
+  const liveBancadas = useMemeBackers(trend.id) ?? 0
 
   return (
     <article className={`border-b border-border/40 transition-all hover:bg-surface/30 ${isHotPump ? 'relative' : ''}`}>
@@ -127,9 +116,9 @@ export default function FeedCard({ trend, onOpenStats }) {
       </div>
 
       {/* Image - tap to like */}
-      {/* 🧠 FOMO border — hype orange (laranja de urgencia) pulsante em hot pumps */}
+      {/* 🧠 FOMO border — hype orange pulsante + noise texture em hot pumps (Mundo B) */}
       <div className={`relative w-full aspect-[4/5] max-h-[500px] bg-surface-hover overflow-hidden transition-all
-        ${isHotPump ? 'ring-2 ring-hype/70 glow-hype' : ''}`}
+        ${isHotPump ? 'ring-2 ring-hype/70 glow-hype noise-texture' : ''}`}
         onDoubleClick={(e) => { setLiked(true); handleBancar(e) }}>
         <img
           src={trend.thumbnail}
