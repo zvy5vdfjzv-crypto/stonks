@@ -30,26 +30,39 @@ function timeAgo(ts) {
   return `${Math.floor(secs / 86400)}d`
 }
 
-function ContentCard({ item }) {
+function ContentCard({ item, isNew }) {
   const meta = SOURCE_META[item.source] || SOURCE_META.reddit
   const MetaIcon = meta.icon
   const img = item.thumbnail || item.preview
-  // 🌐 Traduz titulo e description pra lingua do user (fonte: EN na maioria)
+  // 🌐 Traduz titulo pra lingua do user (description mantida original — economiza quota MyMemory)
   const translatedTitle = useTranslated(item.title, 'en')
-  const translatedDesc = useTranslated(item.description, 'en')
   return (
     <motion.a
       href={item.permalink || item.url}
       target="_blank" rel="noopener noreferrer"
+      layout
+      initial={isNew ? { opacity: 0, y: -20, scale: 0.95 } : false}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       whileHover={{ y: -2 }}
-      className="block bg-surface border border-border rounded-xl overflow-hidden hover:border-money/40 transition-all no-underline group"
+      className={`block bg-surface border rounded-xl overflow-hidden transition-all no-underline group
+        ${isNew ? 'border-money glow-money' : 'border-border hover:border-money/40'}`}
     >
       {img && (
-        <div className="aspect-[16/9] bg-surface-hover overflow-hidden">
+        <div className="aspect-[16/9] bg-surface-hover overflow-hidden relative">
           <img src={img} alt=""
             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             loading="lazy"
             onError={(e) => { e.target.style.display = 'none' }} />
+          {isNew && (
+            <motion.div
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="absolute top-2 left-2 bg-money text-[#0a0a0f] px-2 py-0.5 rounded font-mono-stonks font-bold text-[10px] uppercase tracking-wider"
+              style={{ boxShadow: '0 0 12px rgba(0,255,136,0.6)' }}
+            >
+              NEW
+            </motion.div>
+          )}
         </div>
       )}
       <div className="p-3">
@@ -70,7 +83,7 @@ function ContentCard({ item }) {
           {translatedTitle}
         </p>
         {item.description && (
-          <p className="text-text-muted text-[11px] mt-1 line-clamp-2">{translatedDesc}</p>
+          <p className="text-text-muted text-[11px] mt-1 line-clamp-2">{item.description}</p>
         )}
         <div className="flex items-center gap-3 mt-2 text-[10px] font-mono-stonks text-text-muted">
           {item.score !== undefined && <span>▲ {item.score.toLocaleString()}</span>}
@@ -94,9 +107,28 @@ export default function HypePage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [newItemIds, setNewItemIds] = useState(new Set()) // IDs marcados como 'NEW' pra badge
+  const [lastUpdateTs, setLastUpdateTs] = useState(0)
 
-  const loadContent = async (cat) => {
-    setLoading(true)
+  // 🔥 Merge — preserva items existentes, marca novos com NEW badge
+  const mergeItems = (prev, incoming) => {
+    if (!prev?.length) return incoming
+    const existingIds = new Set(prev.map(i => `${i.source}-${i.id}`))
+    const trulyNew = incoming.filter(i => !existingIds.has(`${i.source}-${i.id}`))
+    if (!trulyNew.length) return prev // nada novo
+    // Marca IDs novos pra badge NEW
+    setNewItemIds(curr => {
+      const next = new Set(curr)
+      trulyNew.forEach(i => next.add(`${i.source}-${i.id}`))
+      // Remove marca de NEW depois de 45s (via timeout no render)
+      return next
+    })
+    // Prepend novos no topo + existentes
+    return [...trulyNew, ...prev].slice(0, 50) // max 50 items pra nao crescer infinito
+  }
+
+  const loadContent = async (cat, isInitial = false) => {
+    if (isInitial) setLoading(true)
     try {
       const cats = cat === 'all'
         ? (user?.niches?.length ? user.niches : ALL_CATEGORIES)
@@ -114,40 +146,60 @@ export default function HypePage() {
           : fetchYouTubeTrending(cat, 4),
       ])
 
-      // Shuffle + sort por recencia
-      const combined = [...reddit, ...news, ...yt].sort((a, b) =>
+      const incoming = [...reddit, ...news, ...yt].sort((a, b) =>
         (b.publishedAt || b.createdAt || 0) - (a.publishedAt || a.createdAt || 0)
       )
-      setItems(combined)
+
+      if (isInitial) {
+        setItems(incoming)
+      } else {
+        setItems(prev => mergeItems(prev, incoming))
+      }
+      setLastUpdateTs(Date.now())
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
   }
 
+  // ⚡ Refresh AGRESSIVO: a cada 60 segundos. Merge sem reset.
   useEffect(() => {
-    loadContent(activeCategory)
-    const interval = setInterval(() => loadContent(activeCategory), 5 * 60 * 1000)
+    loadContent(activeCategory, true)
+    const interval = setInterval(() => loadContent(activeCategory, false), 60 * 1000)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory])
 
+  // Clean up NEW badges depois de 45s
+  useEffect(() => {
+    if (newItemIds.size === 0) return
+    const timer = setTimeout(() => setNewItemIds(new Set()), 45000)
+    return () => clearTimeout(timer)
+  }, [newItemIds])
+
   const handleRefresh = () => {
     setRefreshing(true)
-    loadContent(activeCategory)
+    loadContent(activeCategory, false)
   }
 
   return (
     <div className="pb-24 max-w-4xl mx-auto">
-      {/* Header */}
+      {/* Header com LIVE pulse */}
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-center gap-2 mb-1">
           <Flame size={22} className="text-hype" />
           <h1 translate="no" className="font-display font-black italic text-text-primary text-2xl">{t('hype.title')}</h1>
-          <span translate="no" className="ml-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider">{t('hype.live')}</span>
+          <span translate="no" className="ml-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider flex items-center gap-1">
+            <motion.span
+              className="w-1.5 h-1.5 rounded-full bg-money"
+              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            {t('hype.live')}
+          </span>
         </div>
         <p className="text-text-muted text-xs font-mono-stonks uppercase tracking-wider">
-          {t('hype.subtitle')}
+          {t('hype.subtitle')} · atualizando a cada 60s
         </p>
       </div>
 
@@ -205,7 +257,11 @@ export default function HypePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {items.map((item, i) => (
-              <ContentCard key={`${item.source}-${item.id}-${i}`} item={item} />
+              <ContentCard
+                key={`${item.source}-${item.id}`}
+                item={item}
+                isNew={newItemIds.has(`${item.source}-${item.id}`)}
+              />
             ))}
           </div>
         )}
