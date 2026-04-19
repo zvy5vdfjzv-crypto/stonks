@@ -17,21 +17,31 @@ import useLocalStorage from '../hooks/useLocalStorage'
 
 const APP_VERSION = '1.0.0'
 
-// Reusable Toggle (iOS-style)
+// Toggle iOS-style — maior (52x28), inner highlight no knob, spring polido
 function Toggle({ checked, onChange, disabled }) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
-      className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors shrink-0 disabled:opacity-40
-        ${checked ? 'bg-money' : 'bg-surface-hover border border-border'}`}
-      style={checked ? { boxShadow: '0 0 8px rgba(0,255,136,0.4)' } : {}}
+      className={`relative w-[52px] h-7 rounded-full cursor-pointer transition-colors shrink-0 disabled:opacity-40
+        ${checked
+          ? 'bg-money'
+          : 'bg-surface-hover border border-border'}`}
+      style={checked
+        ? { boxShadow: '0 0 12px rgba(0,255,136,0.35), inset 0 1px 3px rgba(0,0,0,0.15)' }
+        : { boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.12)' }}
     >
       <motion.span
-        animate={{ x: checked ? 22 : 2 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow"
+        animate={{ x: checked ? 26 : 2 }}
+        transition={{ type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }}
+        className="absolute top-0.5 w-6 h-6 rounded-full"
+        style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #f0f0f5 100%)',
+          boxShadow: checked
+            ? '0 2px 4px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1)'
+            : '0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.15)',
+        }}
       />
     </button>
   )
