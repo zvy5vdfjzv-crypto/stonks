@@ -7,6 +7,37 @@ class SoundManager {
     this.ctx = null
     this.masterGain = null
     this.muted = false
+    this.unlocked = false
+    this._installUnlockListener()
+  }
+
+  // 🍎 iOS Safari: AudioContext precisa ser desbloqueado dentro de gesto do user.
+  // Anexamos listeners globais que fazem o unlock no PRIMEIRO toque/click.
+  // Sem isso, sons no mobile ficam silenciosos mesmo sem mute.
+  _installUnlockListener() {
+    if (typeof window === 'undefined') return
+    const unlock = () => {
+      if (this.unlocked) return
+      this._ensureContext()
+      if (this.ctx) {
+        // Toca um buffer silencioso pra "destravar" o pipeline
+        const buffer = this.ctx.createBuffer(1, 1, 22050)
+        const src = this.ctx.createBufferSource()
+        src.buffer = buffer
+        src.connect(this.ctx.destination)
+        src.start(0)
+        this.ctx.resume().catch(() => {})
+        this.unlocked = true
+      }
+      window.removeEventListener('touchstart', unlock, true)
+      window.removeEventListener('touchend', unlock, true)
+      window.removeEventListener('click', unlock, true)
+      window.removeEventListener('keydown', unlock, true)
+    }
+    window.addEventListener('touchstart', unlock, { once: false, capture: true })
+    window.addEventListener('touchend', unlock, { once: false, capture: true })
+    window.addEventListener('click', unlock, { once: false, capture: true })
+    window.addEventListener('keydown', unlock, { once: false, capture: true })
   }
 
   _ensureContext() {
@@ -14,12 +45,15 @@ class SoundManager {
     if (!this.ctx) {
       const AC = window.AudioContext || window.webkitAudioContext
       if (!AC) return false
-      this.ctx = new AC()
-      this.masterGain = this.ctx.createGain()
-      this.masterGain.gain.value = 0.22 // Briefing: sons mixados baixos
-      this.masterGain.connect(this.ctx.destination)
+      try {
+        this.ctx = new AC()
+        this.masterGain = this.ctx.createGain()
+        this.masterGain.gain.value = 0.22
+        this.masterGain.connect(this.ctx.destination)
+      } catch (e) {
+        return false
+      }
     }
-    // Autoplay policy: resumir em primeira interacao do user
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {})
     }

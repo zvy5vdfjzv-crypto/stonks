@@ -525,6 +525,12 @@ export default function OnboardingPage() {
               >
                 Escolher seus nichos <ArrowRight size={16} />
               </button>
+              <button
+                onClick={() => { setMode('welcome'); setStep(1) }}
+                className="w-full text-text-muted hover:text-text-secondary text-xs py-2 cursor-pointer transition-colors"
+              >
+                ← Voltar
+              </button>
             </motion.div>
           )}
 
