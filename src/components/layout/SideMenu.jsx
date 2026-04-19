@@ -43,8 +43,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
 
   const sections = [
     { id: 'verification', icon: Shield, label: 'Verificação', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
-    { id: 'settings', icon: Settings, label: 'Configurações' },
-    { id: 'privacy', icon: Lock, label: 'Privacidade' },
+    { id: 'settings-full', icon: Settings, label: 'Configurações', action: () => { onClose(); onNavigate?.('/settings') } },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },
     { id: 'screentime', icon: Clock, label: 'Tempo de uso' },
     { id: 'logout', icon: X, label: 'Sair da conta', color: 'text-red', action: async () => {
