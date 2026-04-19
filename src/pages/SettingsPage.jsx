@@ -43,7 +43,7 @@ function Row({ icon: Icon, label, desc, right, onClick, danger }) {
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left
+      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left min-w-0
         ${onClick ? 'hover:bg-surface-hover cursor-pointer' : 'cursor-default'}`}
     >
       {Icon && (
@@ -53,7 +53,7 @@ function Row({ icon: Icon, label, desc, right, onClick, danger }) {
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${danger ? 'text-loss' : 'text-text-primary'}`}>{label}</p>
+        <p className={`text-sm font-medium truncate ${danger ? 'text-loss' : 'text-text-primary'}`}>{label}</p>
         {desc && <p className="text-text-muted text-[11px] mt-0.5 truncate">{desc}</p>}
       </div>
       <div className="shrink-0 flex items-center gap-2">{right}</div>
@@ -182,12 +182,12 @@ function NotificationsSection() {
       <SectionTitle>Nao perturbe</SectionTitle>
       <div className="bg-surface border-y border-border px-4 py-3 space-y-3">
         <p className="text-text-secondary text-xs">Silencia notificacoes nesse intervalo (vazio = desativado)</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <input type="time" value={dndStart} onChange={(e) => setDndStart(e.target.value)}
-            className="flex-1 bg-surface-hover border border-border rounded-lg px-3 py-2 text-xs text-text-primary font-mono-stonks" />
-          <span className="text-text-muted text-xs">ate</span>
+            className="flex-1 min-w-0 bg-surface-hover border border-border rounded-lg px-2 py-2 text-xs text-text-primary font-mono-stonks" />
+          <span className="text-text-muted text-xs shrink-0">ate</span>
           <input type="time" value={dndEnd} onChange={(e) => setDndEnd(e.target.value)}
-            className="flex-1 bg-surface-hover border border-border rounded-lg px-3 py-2 text-xs text-text-primary font-mono-stonks" />
+            className="flex-1 min-w-0 bg-surface-hover border border-border rounded-lg px-2 py-2 text-xs text-text-primary font-mono-stonks" />
         </div>
       </div>
     </div>
@@ -440,26 +440,26 @@ export default function SettingsPage() {
   const ActiveComponent = SECTIONS.find(s => s.id === active)?.component
 
   return (
-    <div className="min-h-dvh bg-[var(--bg-app)] pb-24">
-      {/* Mobile header */}
-      <div className="sm:hidden sticky top-0 z-10 bg-[var(--bg-app)]/95 backdrop-blur-xl border-b border-border flex items-center gap-3 px-3 py-2.5">
+    <div className="min-h-dvh bg-[var(--bg-app)] pb-24 overflow-x-hidden">
+      {/* Header mobile — sempre visivel ate lg */}
+      <div className="lg:hidden sticky top-0 z-10 bg-[var(--bg-app)]/95 backdrop-blur-xl border-b border-border flex items-center gap-3 px-3 py-2.5">
         <button onClick={() => active ? setActive(null) : navigate(-1)}
           className="w-9 h-9 rounded-lg hover:bg-surface-hover flex items-center justify-center cursor-pointer">
           <ArrowLeft size={18} className="text-text-primary" />
         </button>
-        <h1 className="font-display font-bold text-text-primary text-base">
+        <h1 className="font-display font-bold text-text-primary text-base truncate">
           {active ? SECTIONS.find(s => s.id === active)?.label : 'Configuracoes'}
         </h1>
       </div>
 
-      <div className="max-w-5xl mx-auto sm:flex sm:gap-6 sm:px-4 sm:py-6">
-        {/* Sidebar (desktop) / Lista completa (mobile quando sem active) */}
-        <aside className={`${active ? 'hidden sm:block' : ''} sm:w-72 shrink-0`}>
-          <div className="hidden sm:block px-4 pb-3">
+      <div className="w-full max-w-5xl mx-auto lg:flex lg:gap-6 lg:px-4 lg:py-6">
+        {/* Sidebar desktop / Lista completa mobile sem section ativa */}
+        <aside className={`w-full ${active ? 'hidden lg:block' : ''} lg:w-72 lg:shrink-0`}>
+          <div className="hidden lg:block px-4 pb-3">
             <h1 className="font-display font-bold text-text-primary text-2xl">Configuracoes</h1>
             <p className="text-text-muted text-xs mt-1 font-mono-stonks uppercase tracking-wider">Tudo do seu perfil</p>
           </div>
-          <nav className="sm:bg-surface sm:border sm:border-border sm:rounded-2xl sm:overflow-hidden">
+          <nav className="lg:bg-surface lg:border lg:border-border lg:rounded-2xl lg:overflow-hidden">
             {SECTIONS.map((s, i) => {
               const isActive = active === s.id
               const SIcon = s.icon
@@ -468,28 +468,28 @@ export default function SettingsPage() {
                   key={s.id}
                   onClick={() => setActive(s.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer
-                    sm:border-t sm:border-border/40 sm:first:border-t-0
-                    ${isActive ? 'sm:bg-money/10 sm:border-l-2 sm:border-l-money' : 'hover:bg-surface-hover'}
-                    ${i === 0 ? '' : 'border-t border-border/40 sm:border-t-border/40'}`}
+                    lg:border-t lg:border-border/40 lg:first:border-t-0
+                    ${isActive ? 'lg:bg-money/10 lg:border-l-2 lg:border-l-money' : 'hover:bg-surface-hover'}
+                    ${i === 0 ? '' : 'border-t border-border/40 lg:border-t-border/40'}`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0
                     ${isActive ? 'bg-money/20 text-money' : 'bg-surface-hover text-text-secondary'}`}>
                     <SIcon size={15} />
                   </div>
-                  <span className={`text-sm font-medium flex-1 ${isActive ? 'text-money' : 'text-text-primary'}`}>
+                  <span className={`text-sm font-medium flex-1 truncate ${isActive ? 'text-money' : 'text-text-primary'}`}>
                     {s.label}
                   </span>
-                  <ChevronRight size={16} className="text-text-muted sm:hidden" />
+                  <ChevronRight size={16} className="text-text-muted lg:hidden shrink-0" />
                 </button>
               )
             })}
           </nav>
         </aside>
 
-        {/* Content panel */}
-        <main className={`flex-1 min-w-0 ${!active ? 'hidden sm:block' : ''}`}>
+        {/* Content panel — full width em mobile */}
+        <main className={`w-full min-w-0 lg:flex-1 ${!active ? 'hidden lg:block' : ''}`}>
           {!active && (
-            <div className="hidden sm:flex items-center justify-center h-96 text-text-muted text-sm">
+            <div className="hidden lg:flex items-center justify-center h-96 text-text-muted text-sm">
               Selecione uma secao a esquerda
             </div>
           )}
@@ -499,6 +499,7 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
+              className="w-full"
             >
               <ActiveComponent />
             </motion.div>
