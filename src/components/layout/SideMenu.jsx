@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Shield, Settings, Eye, Clock, Moon, Sun, Type, ChevronRight, Lock, Users, AtSign, BarChart2 } from 'lucide-react'
+import { X, Shield, Settings, Eye, Clock, Moon, Sun, Type, ChevronRight, Lock, Users, AtSign, BarChart2, Flame } from 'lucide-react'
 import { useUser } from '../../context/UserContext'
 import { supabase } from '../../lib/supabase'
 import UserAvatar from '../ui/UserAvatar'
@@ -42,6 +42,7 @@ export default function SideMenu({ isOpen, onClose, onNavigate }) {
   if (!user) return null
 
   const sections = [
+    { id: 'hype-live', icon: Flame, label: 'Hype ao vivo', color: 'text-hype', action: () => { onClose(); onNavigate?.('/hype') } },
     { id: 'verification', icon: Shield, label: 'Verificação', color: 'text-blue', action: () => { onClose(); onNavigate?.('/verification') } },
     { id: 'settings-full', icon: Settings, label: 'Configurações', action: () => { onClose(); onNavigate?.('/settings') } },
     { id: 'activity', icon: Eye, label: 'Atividade de amigos' },

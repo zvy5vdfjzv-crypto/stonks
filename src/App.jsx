@@ -32,6 +32,7 @@ import VerificationPage from './pages/VerificationPage'
 import OfficialProfilePage from './pages/OfficialProfilePage'
 import SearchPage from './pages/SearchPage'
 import SettingsPage from './pages/SettingsPage'
+import HypePage from './pages/HypePage'
 
 // Reset page - access /reset to clear account and re-register
 function ResetPage() {
@@ -76,6 +77,7 @@ function MainApp() {
                 <Route path="/page/:id" element={<OfficialProfilePage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/hype" element={<HypePage />} />
               </Routes>
             </main>
             <BottomNav />
