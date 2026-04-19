@@ -37,14 +37,20 @@ function Toggle({ checked, onChange, disabled }) {
   )
 }
 
+// 🐛 Fix: antes era <button>, mas isso impedia <Toggle> dentro de funcionar
+// (HTML invalido: botao dentro de botao). Agora e div clicavel — Toggle opera livre.
 function Row({ icon: Icon, label, desc, right, onClick, danger }) {
+  const clickable = !!onClick
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
+    <div
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? onClick : undefined}
+      onKeyDown={clickable ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
+      } : undefined}
       className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left min-w-0
-        ${onClick ? 'hover:bg-surface-hover cursor-pointer' : 'cursor-default'}`}
+        ${clickable ? 'hover:bg-surface-hover cursor-pointer' : 'cursor-default'}`}
     >
       {Icon && (
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0
@@ -56,8 +62,15 @@ function Row({ icon: Icon, label, desc, right, onClick, danger }) {
         <p className={`text-sm font-medium truncate ${danger ? 'text-loss' : 'text-text-primary'}`}>{label}</p>
         {desc && <p className="text-text-muted text-[11px] mt-0.5 truncate">{desc}</p>}
       </div>
-      <div className="shrink-0 flex items-center gap-2">{right}</div>
-    </button>
+      {right && (
+        <div
+          className="shrink-0 flex items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {right}
+        </div>
+      )}
+    </div>
   )
 }
 

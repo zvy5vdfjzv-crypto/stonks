@@ -9,6 +9,7 @@ import { fetchMultiCategoryNews, fetchNewsByCategory, NEWS_CATEGORIES } from '..
 import { fetchYouTubeTrending, isYouTubeConfigured } from '../services/youtubeFeed'
 import { useUser } from '../context/UserContext'
 import { useLang } from '../context/LanguageContext'
+import useTranslated from '../hooks/useTranslated'
 
 const ALL_CATEGORIES = ['memes', 'finance', 'tech', 'ai', 'viral', 'gaming', 'music', 'cars', 'sports', 'influencer']
 
@@ -33,6 +34,9 @@ function ContentCard({ item }) {
   const meta = SOURCE_META[item.source] || SOURCE_META.reddit
   const MetaIcon = meta.icon
   const img = item.thumbnail || item.preview
+  // 🌐 Traduz titulo e description pra lingua do user (fonte: EN na maioria)
+  const translatedTitle = useTranslated(item.title, 'en')
+  const translatedDesc = useTranslated(item.description, 'en')
   return (
     <motion.a
       href={item.permalink || item.url}
@@ -63,10 +67,10 @@ function ContentCard({ item }) {
           </div>
         </div>
         <p className="text-text-primary text-sm font-medium line-clamp-2 group-hover:text-money transition-colors">
-          {item.title}
+          {translatedTitle}
         </p>
         {item.description && (
-          <p className="text-text-muted text-[11px] mt-1 line-clamp-2">{item.description}</p>
+          <p className="text-text-muted text-[11px] mt-1 line-clamp-2">{translatedDesc}</p>
         )}
         <div className="flex items-center gap-3 mt-2 text-[10px] font-mono-stonks text-text-muted">
           {item.score !== undefined && <span>▲ {item.score.toLocaleString()}</span>}
