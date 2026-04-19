@@ -1,5 +1,5 @@
-// 🌍 LanguageContext — suporta 8 linguas
-// pt / en / es / fr / de / it / ja / zh
+// 🌍 LanguageContext — suporta 8 linguas com detecção automática por localização
+// Chain: localStorage (override manual) → /api/geo (IP country) → navigator.language → pt default
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import pt from '../i18n/pt'
 import en from '../i18n/en'
@@ -24,6 +24,7 @@ export const AVAILABLE_LANGUAGES = [
 ]
 
 const STORAGE_KEY = 'stonks_lang'
+const STORAGE_SOURCE = 'stonks_lang_source' // 'auto' | 'manual'
 
 function detectBrowserLang() {
   if (typeof navigator === 'undefined') return 'pt'
@@ -36,7 +37,7 @@ function detectBrowserLang() {
   if (lang.startsWith('it')) return 'it'
   if (lang.startsWith('ja')) return 'ja'
   if (lang.startsWith('zh')) return 'zh'
-  return 'pt' // fallback pt (default do app)
+  return 'pt'
 }
 
 function loadSavedLang() {
@@ -47,26 +48,73 @@ function loadSavedLang() {
       if (translations[parsed]) return parsed
     }
   } catch {}
-  return detectBrowserLang()
+  return null
+}
+
+function wasManuallySet() {
+  try {
+    return localStorage.getItem(STORAGE_SOURCE) === '"manual"'
+  } catch { return false }
+}
+
+async function detectByGeo(timeoutMs = 2500) {
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs)
+    const r = await fetch('/api/geo', { signal: ctrl.signal, cache: 'force-cache' })
+    clearTimeout(timer)
+    if (!r.ok) return null
+    const data = await r.json()
+    if (data?.language && translations[data.language]) {
+      return { lang: data.language, country: data.country, city: data.city }
+    }
+  } catch {}
+  return null
 }
 
 const LanguageContext = createContext()
 
 export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(() => loadSavedLang())
+  // Init: carrega saved imediato (evita flash), depois re-detecta via geo se necessario
+  const [lang, setLangState] = useState(() => loadSavedLang() || detectBrowserLang())
+  const [geo, setGeo] = useState(null) // { country, city }
 
-  const setLang = useCallback((newLang) => {
+  const setLang = useCallback((newLang, source = 'manual') => {
     if (!translations[newLang]) return
     setLangState(newLang)
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newLang)) } catch {}
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newLang))
+      localStorage.setItem(STORAGE_SOURCE, JSON.stringify(source))
+    } catch {}
   }, [])
 
-  // Atalho legacy — alterna entre pt e en (mantido pra compat)
   const toggleLang = useCallback(() => {
     setLang(lang === 'pt' ? 'en' : 'pt')
   }, [lang, setLang])
 
-  // Atualiza atributo lang do html
+  // 🌍 Geo detection — apenas na primeira visita OU se nao tem override manual
+  useEffect(() => {
+    const saved = loadSavedLang()
+    const manual = wasManuallySet()
+    // Se user escolheu manualmente, respeita — nao sobrescreve
+    if (manual) return
+    // Se nao tem saved, faz detecao completa
+    detectByGeo().then(result => {
+      if (!result) return
+      setGeo({ country: result.country, city: result.city })
+      // Se a lingua detectada e diferente da atual, atualiza (source=auto)
+      if (result.lang && result.lang !== lang) {
+        setLangState(result.lang)
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(result.lang))
+          localStorage.setItem(STORAGE_SOURCE, JSON.stringify('auto'))
+        } catch {}
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Atualiza atributo lang do html (SEO + acessibilidade)
   useEffect(() => {
     try { document.documentElement.setAttribute('lang', lang) } catch {}
   }, [lang])
@@ -77,13 +125,12 @@ export function LanguageProvider({ children }) {
     for (const key of keys) {
       value = value?.[key]
     }
-    // Fallback pra PT se faltar key na lingua atual
+    // Fallback PT se faltar
     if (value === undefined) {
       let fallback = translations.pt
       for (const key of keys) fallback = fallback?.[key]
       value = fallback
     }
-    // Interpolacao de variaveis {var}
     if (typeof value === 'string' && vars) {
       value = value.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`)
     }
@@ -91,7 +138,12 @@ export function LanguageProvider({ children }) {
   }, [lang])
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, toggleLang, t, AVAILABLE_LANGUAGES }}>
+    <LanguageContext.Provider value={{
+      lang, setLang, toggleLang, t,
+      AVAILABLE_LANGUAGES,
+      geo,
+      isAutoDetected: !wasManuallySet(),
+    }}>
       {children}
     </LanguageContext.Provider>
   )

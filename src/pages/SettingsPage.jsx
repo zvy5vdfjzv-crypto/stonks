@@ -320,7 +320,7 @@ function NotificationsSection() {
 }
 
 function AppearanceSection() {
-  const { lang, setLang, AVAILABLE_LANGUAGES } = useLang()
+  const { lang, setLang, AVAILABLE_LANGUAGES, geo, isAutoDetected } = useLang()
   const [showLangs, setShowLangs] = useState(false)
   const [darkMode, setDarkMode] = useLocalStorage('stonks_theme_dark', true)
   const [fontSize, setFontSize] = useLocalStorage('stonks_fontsize', 'M')
@@ -373,7 +373,9 @@ function AppearanceSection() {
               <Row
                 icon={Globe}
                 label={`${current.flag} ${current.native}`}
-                desc="Clique pra trocar"
+                desc={isAutoDetected
+                  ? `Auto-detectado${geo?.country ? ` · ${geo.country}${geo.city ? ', ' + geo.city : ''}` : ''}`
+                  : 'Definido manualmente · clique pra trocar'}
                 right={<ChevronRight size={16} className={`text-text-muted transition-transform ${showLangs ? 'rotate-90' : ''}`} />}
                 onClick={() => setShowLangs(!showLangs)}
               />
