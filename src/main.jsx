@@ -5,6 +5,13 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource-variable/geist'
 import '@fontsource-variable/jetbrains-mono'
 import '@fontsource-variable/space-grotesk'
+// 🎬 Cinematic landing — Instrument Serif (heading italic) + Barlow (body)
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
+import '@fontsource/barlow/300.css'
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
+import '@fontsource/barlow/600.css'
 import './index.css'
 import App from './App.jsx'
 

@@ -6,6 +6,7 @@ import { useLang } from '../context/LanguageContext'
 import { CATEGORIES } from '../data/trends'
 import { CHARACTER_CLASSES, renderCharacterSVG } from '../data/characters'
 import StonksLogo from '../components/ui/StonksLogo'
+import WelcomeLanding from './WelcomeLanding'
 
 const EMOJIS = ['🎮', '🚀', '💎', '🔥', '👑', '🦍', '🐱', '🤖', '⚡', '🎯', '🌙', '🎨']
 
@@ -344,6 +345,11 @@ export default function OnboardingPage() {
 
   const canNextStep1 = displayName.trim().length >= 2 && handle.trim().length >= 2 && email.includes('@') && password.length >= 6
 
+  // 🎬 Welcome cinematico — fullscreen, fora do card
+  if (mode === 'welcome') {
+    return <WelcomeLanding onCreate={() => setMode('register')} onLogin={() => setMode('login')} />
+  }
+
   return (
     <div className="min-h-dvh bg-[var(--bg-app)] flex items-center justify-center px-4 py-8">
       <motion.div
@@ -352,26 +358,6 @@ export default function OnboardingPage() {
         className="w-full max-w-md"
       >
         <AnimatePresence mode="wait">
-          {/* Welcome screen */}
-          {mode === 'welcome' && (
-            <motion.div key="welcome" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="space-y-5 text-center">
-              <div className="mb-8 flex flex-col items-center gap-3">
-                <StonksLogo size={64} showWordmark={false} />
-                <StonksLogo size={36} showWordmark={true} animated={false} />
-                <p className="text-text-secondary text-sm font-mono-stonks uppercase tracking-[0.3em]">A Bolsa dos Virais</p>
-              </div>
-              <button onClick={() => setMode('register')}
-                className="w-full bg-accent hover:bg-accent-light text-white py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all flex items-center justify-center gap-2">
-                <Sparkles size={16} /> Criar conta
-              </button>
-              <button onClick={() => setMode('login')}
-                className="w-full bg-surface border border-border hover:border-accent/30 text-text-primary py-3.5 rounded-xl font-semibold text-sm cursor-pointer transition-all">
-                Ja tenho conta
-              </button>
-            </motion.div>
-          )}
-
           {/* Login screen */}
           {mode === 'login' && (
             <motion.div key="login" initial={{ opacity: 0, x: 200 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}

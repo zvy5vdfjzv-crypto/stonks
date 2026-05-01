@@ -68,6 +68,9 @@
   --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
   --font-mono-stonks: 'JetBrains Mono Variable', ui-monospace, monospace;
   --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  /* 🎬 Cinematic — landing page e momentos epicos */
+  --font-heading: 'Instrument Serif', serif;
+  --font-body-alt: 'Barlow', sans-serif;
 }
 
 /* ===== SUPERFICIES DARK (default) ===== */
@@ -137,6 +140,8 @@ body { overscroll-behavior-y: contain; }
 /* Fontes por contexto */
 .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
 .font-mono-stonks { font-family: var(--font-mono-stonks); font-feature-settings: 'tnum' 1, 'zero' 1; }
+.font-heading { font-family: var(--font-heading); }
+.font-body-alt { font-family: var(--font-body-alt); }
 
 /* Glows coloridos — use em CTAs, hot pumps, raridade lendaria */
 .glow-money { box-shadow: 0 0 24px var(--color-money-glow), 0 0 48px color-mix(in srgb, var(--color-money-glow) 60%, transparent); }
@@ -150,6 +155,70 @@ body { overscroll-behavior-y: contain; }
     linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* ================================================================
+   🎬 LIQUID GLASS — design system cinematico (landing/hero/CTA)
+   .liquid-glass        : subtle (nav, chips, cards)
+   .liquid-glass-strong : heavy blur (CTAs primarios)
+   ================================================================ */
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.15) 80%,
+    rgba(255, 255, 255, 0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border: none;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass-strong::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.2) 80%,
+    rgba(255, 255, 255, 0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* 🔥 Mundo B — noise texture sutil pra momentos de hype (hot pumps) */
