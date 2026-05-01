@@ -185,12 +185,14 @@ export default function HypePage() {
 
   return (
     <div className="pb-24 max-w-4xl mx-auto">
-      {/* Header com LIVE pulse */}
-      <div className="px-4 pt-5 pb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Flame size={22} className="text-hype" />
-          <h1 translate="no" className="font-display font-black italic text-text-primary text-2xl">{t('hype.title')}</h1>
-          <span translate="no" className="ml-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider flex items-center gap-1">
+      {/* Header cinematico — Instrument Serif italic + LIVE pulse */}
+      <div className="px-4 pt-6 pb-4">
+        <div className="flex items-end gap-3 mb-1">
+          <Flame size={28} className="text-hype" strokeWidth={2.5} />
+          <h1 translate="no" className="font-heading italic text-text-primary text-5xl sm:text-6xl leading-none tracking-[-2px]">
+            {t('hype.title')}
+          </h1>
+          <span translate="no" className="mb-2 text-[9px] bg-money/15 text-money border border-money/30 px-1.5 py-0.5 rounded font-mono-stonks uppercase tracking-wider flex items-center gap-1">
             <motion.span
               className="w-1.5 h-1.5 rounded-full bg-money"
               animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }}
@@ -199,7 +201,7 @@ export default function HypePage() {
             {t('hype.live')}
           </span>
         </div>
-        <p className="text-text-muted text-xs font-mono-stonks uppercase tracking-wider">
+        <p className="text-text-muted text-xs font-body-alt mt-2">
           {t('hype.subtitle')} · atualizando a cada 60s
         </p>
       </div>

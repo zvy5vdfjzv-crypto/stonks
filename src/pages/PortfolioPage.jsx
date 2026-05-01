@@ -77,21 +77,22 @@ export default function PortfolioPage() {
 
   return (
     <div className="px-4 py-5 max-w-4xl mx-auto w-full pb-24">
-      {/* 🦾 HERO: Patrimonio Total — display-xl mono, centralizado */}
+      {/* 🦾 HERO: Patrimonio Total — Instrument Serif italic + glass */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8 mt-2"
+        initial={{ opacity: 0, y: -10, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="text-center mb-8 mt-4"
       >
-        <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-[0.3em] mb-2">
+        <p className="text-text-muted text-[10px] font-mono-stonks uppercase tracking-[0.3em] mb-3">
           Patrimonio Total
         </p>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-money font-mono-stonks text-lg font-medium">S$</span>
+          <span className="text-money font-mono-stonks text-base font-medium">S$</span>
           <AnimatedNumber
             value={portfolioValue}
             decimals={2}
-            className="font-mono-stonks font-bold text-[44px] sm:text-[56px] leading-none tabular-nums text-text-primary"
+            className="font-heading italic text-[56px] sm:text-[80px] leading-none tabular-nums text-text-primary tracking-[-3px]"
           />
         </div>
         {/* Variacao do dia — seta chunky + percentual */}
