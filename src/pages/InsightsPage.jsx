@@ -142,7 +142,7 @@ export default function InsightsPage() {
           {/* 🧠 Nome colorido por nivel + RankSigil RPG */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className={`font-bold text-lg ${user.accountType === 'owner' ? 'text-system' : creatorTitle.color}`}>
+              <h1 className={`font-heading italic text-3xl tracking-[-1px] leading-none ${user.accountType === 'owner' ? 'text-system' : creatorTitle.color}`}>
                 {user.displayName}
               </h1>
               <VerifiedBadge type={user.verified} secondary={user.verifiedSecondary} size={20} />

@@ -24,7 +24,7 @@ export default function NotificationPanel({ isOpen, onClose }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             // 🧠 NEUROMARKETING: Glassmorphism no painel de notificacoes — visual premium
-            className="absolute right-0 top-full mt-2 w-80 sm:w-96 backdrop-blur-xl bg-surface/85 border border-border/50 rounded-2xl
+            className="absolute right-0 top-full mt-2 w-80 sm:w-96 liquid-glass-strong bg-black/75 rounded-2xl
               shadow-2xl shadow-black/50 overflow-hidden z-50 max-h-[70vh] flex flex-col"
           >
             {/* Header */}

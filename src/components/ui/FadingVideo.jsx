@@ -1,14 +1,17 @@
-// 🎬 FadingVideo — looping com crossfade rAF (sem CSS transitions)
-// Spec: FADE_MS=500, FADE_OUT_LEAD=0.55s antes do fim. Loop manual via 'ended'.
-import { useEffect, useRef } from 'react'
+// 🎬 FadingVideo — looping com crossfade rAF + fallback gradient quando video falha
+// Defensivo: escuta MULTIPLOS eventos (loadeddata/canplay/playing) pra autoplay reliable.
+// Se video nao carrega, mostra gradient cinematic atras (nao tela preta vazia).
+import { useEffect, useRef, useState } from 'react'
 
 const FADE_MS = 500
 const FADE_OUT_LEAD = 0.55
 
-export default function FadingVideo({ src, className = '', style }) {
+export default function FadingVideo({ src, className = '', style, fallbackGradient }) {
   const videoRef = useRef(null)
   const rafRef = useRef(null)
   const fadingOutRef = useRef(false)
+  const [errored, setErrored] = useState(false)
+  const [started, setStarted] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -27,7 +30,9 @@ export default function FadingVideo({ src, className = '', style }) {
       rafRef.current = requestAnimationFrame(tick)
     }
 
-    const onLoaded = () => {
+    const triggerFadeIn = () => {
+      if (started) return
+      setStarted(true)
       video.style.opacity = '0'
       video.play().catch(() => {})
       fadeTo(1)
@@ -52,28 +57,65 @@ export default function FadingVideo({ src, className = '', style }) {
       }, 100)
     }
 
-    video.addEventListener('loadeddata', onLoaded)
+    const onError = () => setErrored(true)
+
+    // Eventos multiplos pra robustez (autoplay policy quirks)
+    video.addEventListener('loadeddata', triggerFadeIn)
+    video.addEventListener('canplay', triggerFadeIn)
+    video.addEventListener('playing', triggerFadeIn)
     video.addEventListener('timeupdate', onTimeUpdate)
     video.addEventListener('ended', onEnded)
+    video.addEventListener('error', onError)
+
+    // Tentar play imediato (alguns browsers ja tem o video em cache)
+    video.play().catch(() => {})
+
+    // Timeout de 5s — se video nao comecou, marca como errored pra fallback
+    const errorTimer = setTimeout(() => {
+      if (!started && (video.readyState < 2)) setErrored(true)
+    }, 5000)
 
     return () => {
+      clearTimeout(errorTimer)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      video.removeEventListener('loadeddata', onLoaded)
+      video.removeEventListener('loadeddata', triggerFadeIn)
+      video.removeEventListener('canplay', triggerFadeIn)
+      video.removeEventListener('playing', triggerFadeIn)
       video.removeEventListener('timeupdate', onTimeUpdate)
       video.removeEventListener('ended', onEnded)
+      video.removeEventListener('error', onError)
     }
-  }, [src])
+  }, [src, started])
+
+  // Fallback gradient sempre renderiza ATRAS — se video falhar, fica visivel
+  const defaultGradient = 'radial-gradient(ellipse at 30% 20%, rgba(0,255,136,0.15), transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(255,107,26,0.12), transparent 60%), linear-gradient(180deg, #050510, #000000)'
 
   return (
-    <video
-      ref={videoRef}
-      src={src}
-      autoPlay
-      muted
-      playsInline
-      preload="auto"
-      className={className}
-      style={{ opacity: 0, ...style }}
-    />
+    <>
+      {/* Fallback bg sempre presente atras */}
+      <div
+        className={className}
+        style={{
+          ...style,
+          background: fallbackGradient || defaultGradient,
+          opacity: errored ? 1 : 0.6,
+          transition: 'opacity 0.5s',
+        }}
+      />
+      {/* Video por cima */}
+      {!errored && (
+        <video
+          ref={videoRef}
+          src={src}
+          autoPlay
+          muted
+          playsInline
+          loop={false}
+          preload="auto"
+          className={className}
+          style={{ opacity: 0, ...style }}
+        />
+      )}
+    </>
   )
 }

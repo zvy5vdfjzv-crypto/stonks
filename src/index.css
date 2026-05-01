@@ -75,9 +75,9 @@
 
 /* ===== SUPERFICIES DARK (default) ===== */
 :root {
-  --bg-app: #0a0a0f;          /* base — levemente azulado, nao preto total */
-  --bg-elevated: #14141c;     /* cards, modais */
-  --bg-overlay: #1c1c28;      /* hover states */
+  --bg-app: #000000;          /* preto puro pra cinematic + liquid-glass shines */
+  --bg-elevated: #0e0e14;     /* cards, modais (levemente azulado) */
+  --bg-overlay: #161620;      /* hover states */
   --bg-terminal: #000000;     /* areas tipo "terminal" com grid */
 
   --surface: #14141c;

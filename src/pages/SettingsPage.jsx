@@ -818,7 +818,7 @@ export default function SettingsPage() {
         {/* Sidebar desktop / Lista completa mobile sem section ativa */}
         <aside className={`w-full ${active ? 'hidden lg:block' : ''} lg:w-72 lg:shrink-0`}>
           <div className="hidden lg:block px-4 pb-3">
-            <h1 className="font-display font-bold text-text-primary text-2xl">Configuracoes</h1>
+            <h1 className="font-heading italic text-text-primary text-4xl tracking-[-1px] leading-none">Configuracoes</h1>
             <p className="text-text-muted text-xs mt-1 font-mono-stonks uppercase tracking-wider">Tudo do seu perfil</p>
           </div>
           <nav className="lg:bg-surface lg:border lg:border-border lg:rounded-2xl lg:overflow-hidden">
